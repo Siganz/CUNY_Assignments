@@ -1,7 +1,0 @@
-"0","con <- dbConnect("
-"0","  RPostgres::Postgres(),"
-"0","  dbname = ""learning"","
-"0","  host = ""localhost"","
-"0","  user = 'postgres',"
-"0","  password = 'admin'"
-"0",")"
