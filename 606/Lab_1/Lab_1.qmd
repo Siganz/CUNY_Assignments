@@ -1,0 +1,149 @@
+---
+title: "Lab 1: Introduction to R and RStudio"
+author: "Shawn Ganz"
+format: html
+editor: visual
+---
+## Some Exploration
+
+**Loading packages**
+```{r}
+#| echo: true
+#| output: false
+
+library(tidyverse)
+library(openintro)
+```
+
+**Loading arbuthnot**
+```{r}
+#| echo: true
+#| output: true
+data('arbuthnot', package='openintro')
+```
+**Loading vector boys**
+```{r}
+arbuthnot$boys
+```
+
+### **Exercise 1:**
+*What command would you use to extract just the counts of girls baptized? Try it!*
+```{r}
+arbuthnot$girls
+
+# or better
+length(arbuthnot$girls)
+```
+**ggplot() geom_point**
+```{r}
+df_point <- ggplot(data = arbuthnot, aes(x = year, y = girls)) + geom_point()
+df_point
+```
+**ggplot() geom_line**
+```{r}
+df_line <- ggplot(data = arbuthnot, aes(x = year, y = girls)) + geom_line()
+df_line
+```
+**Using ?**
+```{r}
+#| echo: True
+#| eval: false
+#| output: false
+?ggplot
+```
+
+***
+
+### **Exercise: 2**
+*Is there an apparent trend in the number of girls baptized over the years? How would you describe it? (To ensure that your lab report is comprehensive, be sure to include the code needed to make the plot as well as your written interpretation.)*
+
+```{r}
+df_line
+# Looking at the chart, you can see there is a positive correlation, to make it easier to see we can do the following: 
+arbuthnot |>
+  ggplot(aes(x = year, y = girls)) + geom_point() + geom_smooth(method = lm, se = FALSE)
+```
+There is a positive trend with year and girls, particularly among the later years. We can view this from the geom_line in the ggplot above, but we can also just double check by finding the correlation between girls and years:
+```{r}
+cor(arbuthnot$year, arbuthnot$girls)
+```
+
+***
+
+**Adding vector 'total'**
+```{r}
+arbuthnot <- arbuthnot %>%
+  mutate(total = boys + girls)
+glimpse(arbuthnot)
+```
+
+**Plotting new vector**
+```{r}
+arbuthnot |>
+  ggplot(aes(x = year, y = total)) +
+  geom_line()
+```
+
+**Adding vector boy_to_girl_ratio**
+```{r}
+arbuthnot <- arbuthnot |>
+  mutate(boy_to_girl_ratio = boys/girls)
+```
+
+**Plotting boy_to_girl_ratio**
+```{r}
+arbuthnot |>
+  ggplot(aes(x = year, y = boy_to_girl_ratio)) +
+  geom_point() +
+  geom_smooth(method = lm, se = FALSE)
+```
+
+**Adding vector boy_ratio**
+```{r}
+arbuthnot <- arbuthnot |>
+  mutate(boy_ratio = boys / total)
+```
+
+***
+
+### **Exercise 3**
+*Now, generate a plot of the proportion of boys born over time. What do you see?*
+```{r}
+arbuthnot |>
+  ggplot(aes(x = year, y = boy_ratio)) +
+  geom_point() +
+  geom_smooth(method = lm, se = FALSE)
+```
+
+*Observation:* The greater the year, the less boys are baptized.
+
+***
+
+**Adding & plotting vector more_boys**
+```{r}
+arbuthnot <- arbuthnot |>
+  mutate(more_boys = boys > girls)
+arbuthnot |>
+  ggplot(aes(x = year, y = more_boys)) +
+  geom_point()
+```
+Wasn't expecting that...
+
+***
+
+```{r}
+with(arbuthnot, table(boys > girls))
+glimpse(arbuthnot)
+```
+
+***
+
+Seems like for each year, there are more boys than girls. 
+
+***
+## More Practice
+
+*Reassigning the data*
+```{r}
+data('present', package = 'openintro')
+```
