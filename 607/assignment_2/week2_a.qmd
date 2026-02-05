@@ -50,6 +50,7 @@ I'm not going to get into much of the data-entry angle. Like at work we do an ET
 ### R
 
 I'm going to use the RPostgres package instead of dbplyr. I heard that it's one of the go-to packages for using postgres within R so I'd like to use it. I'll use it with DBI and perform the following:
+
   - Connect to SQL database
   - Select both views as variables using RPostgres
   - Return each, but clean up the raw dataset to remove null entries
