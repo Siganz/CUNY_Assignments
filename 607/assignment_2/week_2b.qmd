@@ -3,3 +3,71 @@ title: "week_2b"
 format: html
 ---
 
+## Approach
+
+### **Loading tidyverse**
+```{r}
+library(tidyverse)
+```
+
+### **Viewing the data from github**
+```{r}
+df <- read.csv(
+  'https://raw.githubusercontent.com/acatlin/data/refs/heads/master/penguin_predictions.csv'
+)
+
+glimpse(df)
+```
+
+### **Fields**
+  - pred_female
+  - pred_class
+  - sex
+
+
+### **Tasks**
+- **Null Error Rate**
+  - **'[M]ajority-class error rate.'**
+    - I had help from ChatGPT and it told me that the error rate = majority class % - total %.
+      - So, if sex = 100, 2 uniques (men/women), men = 55 & women = 45, the null error rate would be 45%. 
+    - Seems like a unique count for the sex field, then a division into percentage. 
+
+```{r}
+temp <- df |>
+  count(sex) |>
+  mutate(percent = round(((n / sum(n))*100), 0))
+temp
+
+```
+  - **Create a plot showing distribution of sex**
+    - simple ggplot geom_bar
+  - **Explain why it's important to know null error rate**
+    - It defines the accuracy rate if the model just defaults to predicting the majority value. 
+    - Why is that important? I thought randomness would be 50% across the board, but that's not true unless the data is % 50 equal. 
+    So, this method takes the higher % of the data and says, if the prediction model can't achieve above that %, we can't determine
+    if it's actually predicting.
+
+  - **Confusion Matrices**
+    - *Using probability thresholds of 0.2, 0.5, and 0.8, compute:*
+      - **True Positives (TP)**
+        - Measures when the class is true and predicted is true.
+      - **True Negatives (TN)**
+        - Measures when the class is false and predicted is false.
+      - **False Positives (FP)**
+        - Measures when the class is false and predicted is true.
+      - **False Negatives (FN)**
+        - Measures when the class is true and predicted is false.
+  
+    - **Present results as three confusion matrices.**
+      - So, this would take the pred_female vs the actual.
+        - We then use the thresholds to calculate new columns with different n values.
+        - Then we use those new fields vs the actual for the confusion matrix.
+
+**You may compute these manually or use existing functions.**
+  
+  - **Performance Metrics**
+    - We can just use the values from the confusion matrices (?)
+  - **Threshold Use Cases**
+    - I guess we can analyze the data from the thresholds, determine the model accuracy, and think of reasons
+    why we would use a lower threshold vs a higher threshold.
+  
