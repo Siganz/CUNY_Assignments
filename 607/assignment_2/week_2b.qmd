@@ -12,11 +12,11 @@ library(tidyverse)
 
 ### **Viewing the data from github**
 ```{r}
-df <- read.csv(
+df_raw <- read.csv(
   'https://raw.githubusercontent.com/acatlin/data/refs/heads/master/penguin_predictions.csv'
 )
 
-glimpse(df)
+glimpse(df_raw)
 ```
 
 ### **Fields**
@@ -33,7 +33,7 @@ glimpse(df)
     - Seems like a unique count for the sex field, then a division into percentage. 
 
 ```{r}
-temp <- df |>
+temp <- df_raw |>
   count(sex) |>
   mutate(percent = round(((n / sum(n))*100), 0))
 temp
@@ -70,4 +70,186 @@ temp
   - **Threshold Use Cases**
     - I guess we can analyze the data from the thresholds, determine the model accuracy, and think of reasons
     why we would use a lower threshold vs a higher threshold.
+
+## Code-base
+```{r}
+glimpse(df_raw)
+```
+
+### 1, Null Error Rate
+```{r}
+df <- df_raw 
+df <- df |>
+  count(sex) |>
+  mutate(percent = round(((n / sum(n))*100), 0))
+df
+```
+
+#### **Calculate Error Rate**
+```{r}
+null_error_rate <- min(df$n) / sum(df$n)
+sprintf("The null error rate is %.02f",(null_error_rate))
+```
+
+#### **Plot distribution of class**
+```{r}
+ggplot(df, aes(x = sex, y = n, fill = sex)) +
+  geom_col() +
+  labs(
+    title = "Distribution of Sex",
+    subtitle = "The count of each sex for the study.",
+    x = "Sex",
+    y = "Count"
+  )
+```
+
+#### **Why is null error rate important?**
+Null error rate is the chance the model has at being wrong if it only chooses the majority class. It's the baseline metric that the model needs to outperform in order to say that it's actually learning meaningful patterns to inform it's predictions rather than just choosing the majority class.
+
+### Confusion Matrices & Performance Metrics
+
+```{r}
+df <- df_raw |>
+  rename(
+    pred_female = .pred_female,
+    pred_class = .pred_class,
+    truth = sex
+    ) |>
+  mutate(truth_bool = truth == "male")
+glimpse(df)
+```
+
+The calculation for the prediction should be: 
+```{r}
+threshold_prediction <- function(df_pred, t) {
   
+  pred  <- df_pred$pred_female >= t
+  reality <- df_pred$truth_bool
+  
+  tp <-   sum(pred & reality)
+  fp <-   sum(pred & !reality)
+  tn <-   sum(!pred & !reality)
+  fn <-   sum(!pred & reality)
+  
+  tibble(
+    threshold = t,
+    true_positive= tp,
+    false_positive = fp,
+    true_negative = tn,
+    false_negative = fn
+  )
+}
+
+```
+
+
+```{r}
+t = 1
+# run threshold_prediction
+p <- threshold_prediction(df, t)
+
+# Setting variables
+tp <- p$true_positive
+fp <- p$false_positive
+tn <- p$true_negative
+fn <- p$false_negative
+```
+The calculations for the performance metrics:
+
+**Accuracy**
+
+  - Proportion of correct predictions of all cases.
+  - Correct predictions / Total predictions
+    - (true_positive + true_negative) / sum(true_positive, false_positive, true_negative, false_negative)
+    - Accuracy is also 1 - null error rate.
+  
+```{r}
+accuracy <- 1- null_error_rate
+accuracy <- function(tp, fp, tn, fn){(tp + tn) / (tp + fp + tn + fn)}
+```
+
+**Precision**
+
+  - Proportion of correct prediction targets of all prediction targets. 
+  - True positive / True positive + False positive
+
+```{r}
+precision <- function(tp, fp){tp / (tp + fp)}
+```
+  
+**Recall**
+
+  - Proportion of correct prediction targets of all actual targets.  
+  - True positive / True positive + False negative
+
+```{r}
+recall <- function(tp, fn){tp / (tp + fn)}
+```
+  
+**F1 Score**
+
+  - *Harmonic mean* of precision and recall
+  - It's really an anti-cheat.
+    - You can be 100% correct in your predictions, but miss 90% of the actual targets. 
+    - You can get 100% of the actual targets, but be 90% wrong. 
+    
+```{r}
+f1  <- function(tp, fp, fn){
+  p <- precision(tp, fp)
+  r <- recall(tp, fn)
+  2 * (p * r) / (p + r)
+}
+```
+
+I asked ChatGPT to create a ggplot from the tibble because it seemed complicated. 
+```{r}
+confusion_plot <- function(x) {
+
+  cm <- tibble(
+    Actual = c("Positive","Positive","Negative","Negative"),
+    Pred   = c("Positive","Negative","Positive","Negative"),
+    n = c(
+      x$true_positive,
+      x$false_negative,
+      x$false_positive,
+      x$true_negative
+    )
+  )
+
+  ggplot(cm, aes(x = Pred, y = Actual, fill = n)) +
+    geom_tile() +
+    geom_text(aes(label = n), color = "white", size = 6) +
+    scale_fill_gradient(low = "grey70", high = "steelblue") +
+    labs(
+      title = "Confusion Matrix",
+      subtitle = sprintf("Threshold %.1f", t),
+      x = "Predicted",
+      y = "Actual"
+    ) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(hjust = 0.5),
+      plot.subtitle = element_text(hjust = 0.5)
+      )
+}
+
+```
+
+#### Threshold @ 0.2
+```{r}
+t <- 0.2
+
+```
+
+#### Threshold @ 0.5
+```{r}
+t <- 0.5
+
+```
+
+#### Threshold @ 0.8
+```{r}
+t <- 0.8
+
+```
+
