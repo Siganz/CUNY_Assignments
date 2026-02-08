@@ -1,6 +1,8 @@
 ---
 title: "week_2b"
 format: html
+toc: true
+toc-location: left
 ---
 
 ## Approach
@@ -76,7 +78,7 @@ temp
 glimpse(df_raw)
 ```
 
-### 1, Null Error Rate
+### Null Error Rate
 ```{r}
 df <- df_raw 
 df <- df |>
@@ -115,15 +117,16 @@ df <- df_raw |>
     pred_class = .pred_class,
     truth = sex
     ) |>
-  mutate(truth_bool = truth == "male")
+  mutate(truth_bool = truth == "female")
 glimpse(df)
 ```
 
 The calculation for the prediction should be: 
 ```{r}
-threshold_prediction <- function(df_pred, t) {
+#| label: check
+threshold_prediction <- function(df_pred, threshold) {
   
-  pred  <- df_pred$pred_female >= t
+  pred  <- df_pred$pred_female >= threshold
   reality <- df_pred$truth_bool
   
   tp <-   sum(pred & reality)
@@ -132,7 +135,7 @@ threshold_prediction <- function(df_pred, t) {
   fn <-   sum(!pred & reality)
   
   tibble(
-    threshold = t,
+    threshold = threshold,
     true_positive= tp,
     false_positive = fp,
     true_negative = tn,
@@ -144,15 +147,11 @@ threshold_prediction <- function(df_pred, t) {
 
 
 ```{r}
-t = 1
+#| label: check 2
+threshold = 1
 # run threshold_prediction
-p <- threshold_prediction(df, t)
-
-# Setting variables
-tp <- p$true_positive
-fp <- p$false_positive
-tn <- p$true_negative
-fn <- p$false_negative
+p <- threshold_prediction(df, threshold)
+p
 ```
 The calculations for the performance metrics:
 
@@ -164,7 +163,6 @@ The calculations for the performance metrics:
     - Accuracy is also 1 - null error rate.
   
 ```{r}
-accuracy <- 1- null_error_rate
 accuracy <- function(tp, fp, tn, fn){(tp + tn) / (tp + fp + tn + fn)}
 ```
 
@@ -201,6 +199,41 @@ f1  <- function(tp, fp, fn){
 }
 ```
 
+We can put those metrics into our original function
+```{r}
+threshold_prediction <- function(df_pred, threshold) {
+  
+  pred  <- df_pred$pred_female >= threshold
+  reality <- df_pred$truth_bool
+  
+  tp <-   sum(pred & reality)
+  fp <-   sum(pred & !reality)
+  tn <-   sum(!pred & !reality)
+  fn <-   sum(!pred & reality)
+  
+  tib <- tibble(
+    threshold,
+    true_positive= tp,
+    false_positive = fp,
+    true_negative = tn,
+    false_negative = fn,
+    accuracy = accuracy(tp, fp, tn, fn),
+    precision = precision(tp, fp),
+    recall = recall(tp, fn),
+    f1 = f1(tp, fp, fn)
+  )
+  tib |> 
+    mutate(
+      across(c(accuracy, precision, recall, f1), round, digits = 2)
+    )
+}
+```
+
+```{r}
+p <- threshold_prediction(df, threshold)
+p
+```
+
 I asked ChatGPT to create a ggplot from the tibble because it seemed complicated. 
 ```{r}
 confusion_plot <- function(x) {
@@ -222,7 +255,7 @@ confusion_plot <- function(x) {
     scale_fill_gradient(low = "grey70", high = "steelblue") +
     labs(
       title = "Confusion Matrix",
-      subtitle = sprintf("Threshold %.1f", t),
+      subtitle = sprintf("Threshold %.1f", threshold),
       x = "Predicted",
       y = "Actual"
     ) +
@@ -235,21 +268,140 @@ confusion_plot <- function(x) {
 
 ```
 
+To make it cleaner:
+```{r}
+evaluate_threshold <- function(df, threshold) {
+  m <- threshold_prediction(df, threshold)
+  print(m)
+  confusion_plot(m)
+}
+
+```
+
 #### Threshold @ 0.2
 ```{r}
-t <- 0.2
-
+threshold <- 0.2
+evaluate_threshold(df, threshold)
 ```
 
 #### Threshold @ 0.5
 ```{r}
-t <- 0.5
-
+threshold <- 0.5
+evaluate_threshold(df, threshold)
 ```
 
 #### Threshold @ 0.8
 ```{r}
-t <- 0.8
-
+threshold <- 0.8
+evaluate_threshold(df, threshold)
 ```
 
+### Threshold Use Cases
+
+#### 0.2 Threshold usecase
+When your prediction models cares less about precision and more about recall. This would be good for cancer screening, where you want to capture as many potential cases because missing even one patient would be costly. 
+
+#### 0.8 Threshold usecase
+When your prediction models cares more about precision than recall. Using the cancer example, this would be good for experimental cancer treatments where the patient's must meet strict eligibility criteria and false positives would be costly.
+
+### Conceptual Roadmap
+
+#### Binary Classification Basics
+Yeah, the threshold determines whether the prediction probability is rejected or not. 
+
+#### Baseline Thinking (Null Error Rate)
+It was kinda difficult to understand this, but it makes sense. If the model just chose the class with the majority, then it would
+have an error rate equal to the proportion that was not chosen. So, 70/100 are male, and the model only chose male, it would be 30% error rate. The model would have to outperform that % to be considered meaningful, even by a percentage point. 
+
+It also wouldn't be the inverse, because in that instance it would be a 70% error rate from picking the minority. However, that goes against the idea of baseline prediction performance, which is determined by a naive classifier, such as always predicting the most common class. I agree with that idea, because I'd do the same without any useful signals to weigh my predictions. 
+
+Also, if the minority class is the target for predictions, the error rate matters less because the metrics make up for it. 
+
+#### Confusion Matrix as Core Object
+I see that, the fundamentals inform metrics. 
+
+#### Threshold Tradeoffs
+Threshold depends on context, I agree. It's similar to the usecase of medical patients discussed in the *Threshold Use Cases* subsection.
+
+### Practical Guidance
+
+#### Explore the Data
+
+```{r, out.width="400px"}
+knitr::include_graphics("class_imbalance.png")
+```
+
+```{r}
+plot_df <- df |>
+  count(truth, name = "n") |>
+  mutate(
+    prop = n / sum(n),
+    label = scales::percent(prop, accuracy = 0.1)
+  )
+
+plot_df |>
+  ggplot(aes(x = truth, y = prop, fill = truth)) +
+  geom_col(width = 0.7) +
+  geom_text(aes(label = label), vjust = -0.5) +
+  scale_y_continuous(
+    labels = scales::percent,
+    expand = expansion(mult = c(0, 0.2))
+  ) +
+  labs(
+    title = "Class Distribution for Sex",
+    y = "Proportion",
+    x = NULL
+  ) +
+  guides(fill = "none") +
+  theme(
+    panel.background = element_blank(),
+    axis.text = element_text(face = "bold"),
+    axis.title.y = element_text(margin = margin(r = 25)),
+    plot.title = element_text(hjust = 0.5, face = "bold", margin = margin(b = 35)),
+    plot.margin = margin(t = 20, r = 40, b = 20, l = 40),
+    panel.grid.major.y = element_line(color = "grey"),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+
+```
+The graph from the example seems fine. The only thing would be to convert the data labels to .2f. I just made a clean chart. It's simple. 
+
+#### Understanding Probability vs Class
+
+I actually did this earlier in the codebase where I put them into a singular function, but I can do it in a summary table!
+
+```{r}
+threshold = 0.8
+
+df_extra <- df |>
+  select(pred_female, truth, truth_bool) |>
+  mutate(target = ifelse(truth_bool == TRUE, 1,0)) |>
+  mutate(pred_class_2 = ifelse(pred_female > threshold, 1, 0))
+
+glimpse(df_extra)
+```
+
+#### Build Confusion Matrices
+```{r}
+df_confusion <- df_extra |>
+  summarize(
+    tp = sum(pred_class_2 == 1 & target == 1),
+    fp = sum(pred_class_2 == 1 & target == 0),
+    tn = sum(pred_class_2 == 0 & target == 0),
+    fn = sum(pred_class_2 == 0 & target == 1)
+  )
+glimpse(df_confusion)
+```
+
+#### Drive Metrics
+```{r}
+df_metrics <- df_confusion |>
+  summarize(
+    accuracy = (tp + tn) / (tp + fp + tn + fn),
+    precision = tp / (tp + fp),
+    recall = tp / (tp + fn),
+    f1 = (tp * 2) / (2 * tp + fp + fn)
+  )
+df_metrics
+```
