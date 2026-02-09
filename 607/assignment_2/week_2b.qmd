@@ -87,7 +87,7 @@ df <- df |>
 df
 ```
 
-#### **Calculate Error Rate**
+#### **Calculate Null Error Rate**
 ```{r}
 null_error_rate <- min(df$n) / sum(df$n)
 sprintf("The null error rate is %.02f",(null_error_rate))
@@ -160,7 +160,7 @@ The calculations for the performance metrics:
   - Proportion of correct predictions of all cases.
   - Correct predictions / Total predictions
     - (true_positive + true_negative) / sum(true_positive, false_positive, true_negative, false_negative)
-    - Accuracy is also 1 - null error rate.
+    - 100% Accuracy is also 1 - null error rate.
   
 ```{r}
 accuracy <- function(tp, fp, tn, fn){(tp + tn) / (tp + fp + tn + fn)}
@@ -168,7 +168,7 @@ accuracy <- function(tp, fp, tn, fn){(tp + tn) / (tp + fp + tn + fn)}
 
 **Precision**
 
-  - Proportion of correct prediction targets of all prediction targets. 
+  - Proportion of correct positive prediction targets of all predicted positive targets. 
   - True positive / True positive + False positive
 
 ```{r}
@@ -177,7 +177,7 @@ precision <- function(tp, fp){tp / (tp + fp)}
   
 **Recall**
 
-  - Proportion of correct prediction targets of all actual targets.  
+  - Proportion of correct positive prediction targets of all actual positive targets.
   - True positive / True positive + False negative
 
 ```{r}
@@ -223,9 +223,7 @@ threshold_prediction <- function(df_pred, threshold) {
     f1 = f1(tp, fp, fn)
   )
   tib |> 
-    mutate(
-      across(c(accuracy, precision, recall, f1), round, digits = 2)
-    )
+    mutate(across(c(accuracy, precision, recall, f1), ~ round(.x, 2)))
 }
 ```
 

@@ -93,7 +93,6 @@ CREATE TABLE popular_movies.ratings(
 	rating_id SERIAL PRIMARY KEY,
 	person_id INT NOT NULL,
 	movie_id INT NOT NULL,
-	-- Assume that everyone answering the survey has watched every movie
 	rating INT CHECK (rating BETWEEN 1 AND 5),
 	rated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
