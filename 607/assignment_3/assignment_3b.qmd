@@ -1,0 +1,106 @@
+---
+title: "assignment_3b"
+format: html
+---
+
+## Window Functions
+
+Find (or ask an LLM to generate!) a dataset that includes time series for two or more separate items.  For example, you could use end of day stock or cryptocurrency prices since Jan 1, 2022 for several instruments.
+Use window functions (in SQL or dplyr) to calculate the year-to-date average and the six-day moving averages for each item.
+
+You may work in a small team on this assignment.  
+
+### Approach
+
+I'll use coingecko API to get end of day prices for BTC, ETH, & SOL. I will create 6 day moving average (mean of price in a window of 6 days + current) and a year (mean of price in a window of 360 days + current). 
+
+For this assignment I'll connect to an api via R, ChatGPT recommended the following libraries. 
+
+```{r}
+library(httr2)
+library(jsonlite)
+```
+
+I also will set up a .env file to store my api key. I made sure to .gitignore it and also hide the output since it's a SECRET!
+
+```{r}
+#| eval: false
+library(dotenv)
+load_dot_env()
+Sys.getenv("KEY")
+```
+
+I'll test the api connection: 
+
+```{r}
+#| eval: false
+key <- Sys.getenv("KEY")
+
+resp <- request("https://api.coingecko.com/api/v3/ping") |>
+  req_headers(`x-cg-demo-api-key` = key) |>
+  req_perform()
+
+resp |> resp_body_json()
+```
+$gecko_says
+[1] "(V3) To the Moon!"
+
+Looks like it works!
+
+This will be our API function it just uses the coingecko api's http request. The inputs of the function will allow us to choose which coin, date, and currency value we want to return from the request. Then it returns a tibble by using map_dfr, which just maps the JSON output into a tibble.
+```{r}
+library(dplyr)
+library(purrr)
+
+get_coin_range <- function(coin,
+                           start = "2022-01-01",
+                           vs = "usd") {
+
+  from <- as.numeric(as.POSIXct(start, tz = "UTC"))
+  to   <- as.numeric(Sys.time())
+
+  url <- sprintf(
+    "https://api.coingecko.com/api/v3/coins/%s/market_chart/range",
+    coin
+  )
+
+  resp <- request(url) |>
+    req_headers(`x-cg-demo-api-key` = Sys.getenv("COINGECKO_KEY")) |>
+    req_url_query(
+      vs_currency = vs,
+      from = from,
+      to = to,
+      precision = 2
+    ) |>
+    req_perform() |>
+    resp_body_json()
+
+  map_dfr(resp$prices, \(x)
+    tibble(
+      coin  = coin,
+      date  = as.Date(x[[1]] / 1000,
+                      origin = "1970-01-01",
+                      tz = "UTC"),
+      price = x[[2]]
+    )
+  )
+}
+
+```
+
+So I'll use that function to create df per coin:
+
+- btc <- get_coin_range("bitcoin", "2022-01-01", "usd")
+- eth <- get_coin_range("ethereum", "2022-01-01", "usd")
+- sol <- get_coin_range("solana", "2022-01-01", "usd")
+
+Then I'll just create a window for 6 days moving average & yearly to date average. Or maybe create fucntions for each:
+
+```{r}
+m_avg <-function(df, window){}
+ytd <-function(df){}
+```
+
+That should be it!
+
+### Codebase
