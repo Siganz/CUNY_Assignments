@@ -481,9 +481,10 @@ $ truth_bool  &lt;lgl&gt; TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, 
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>evaluate_threshold <span class="ot">&lt;-</span> <span class="cf">function</span>(df, threshold) {</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  m <span class="ot">&lt;-</span> <span class="fu">threshold_prediction</span>(df, threshold)</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(m)</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">confusion_plot</span>(m)</span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(m[,<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>])</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(m[, <span class="dv">6</span><span class="sc">:</span><span class="fu">ncol</span>(m)])</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">confusion_plot</span>(m)</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="threshold-0.2" class="level4">
 <h4 class="anchored" data-anchor-id="threshold-0.2">Threshold @ 0.2</h4>
@@ -491,11 +492,14 @@ $ truth_bool  &lt;lgl&gt; TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, 
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>threshold <span class="ot">&lt;-</span> <span class="fl">0.2</span></span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">evaluate_threshold</span>(df, threshold)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 1 × 9
-  threshold true_positive false_positive true_negative false_negative accuracy
-      &lt;dbl&gt;         &lt;int&gt;          &lt;int&gt;         &lt;int&gt;          &lt;int&gt;    &lt;dbl&gt;
-1       0.2            37              6            48              2     0.91
-# ℹ 3 more variables: precision &lt;dbl&gt;, recall &lt;dbl&gt;, f1 &lt;dbl&gt;</code></pre>
+<pre><code># A tibble: 1 × 5
+  threshold true_positive false_positive true_negative false_negative
+      &lt;dbl&gt;         &lt;int&gt;          &lt;int&gt;         &lt;int&gt;          &lt;int&gt;
+1       0.2            37              6            48              2
+# A tibble: 1 × 4
+  accuracy precision recall    f1
+     &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
+1     0.91      0.86   0.95   0.9</code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -512,11 +516,14 @@ $ truth_bool  &lt;lgl&gt; TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, 
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>threshold <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="fu">evaluate_threshold</span>(df, threshold)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 1 × 9
-  threshold true_positive false_positive true_negative false_negative accuracy
-      &lt;dbl&gt;         &lt;int&gt;          &lt;int&gt;         &lt;int&gt;          &lt;int&gt;    &lt;dbl&gt;
-1       0.5            36              3            51              3     0.94
-# ℹ 3 more variables: precision &lt;dbl&gt;, recall &lt;dbl&gt;, f1 &lt;dbl&gt;</code></pre>
+<pre><code># A tibble: 1 × 5
+  threshold true_positive false_positive true_negative false_negative
+      &lt;dbl&gt;         &lt;int&gt;          &lt;int&gt;         &lt;int&gt;          &lt;int&gt;
+1       0.5            36              3            51              3
+# A tibble: 1 × 4
+  accuracy precision recall    f1
+     &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
+1     0.94      0.92   0.92  0.92</code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -533,11 +540,14 @@ $ truth_bool  &lt;lgl&gt; TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, 
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>threshold <span class="ot">&lt;-</span> <span class="fl">0.8</span></span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">evaluate_threshold</span>(df, threshold)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 1 × 9
-  threshold true_positive false_positive true_negative false_negative accuracy
-      &lt;dbl&gt;         &lt;int&gt;          &lt;int&gt;         &lt;int&gt;          &lt;int&gt;    &lt;dbl&gt;
-1       0.8            36              2            52              3     0.95
-# ℹ 3 more variables: precision &lt;dbl&gt;, recall &lt;dbl&gt;, f1 &lt;dbl&gt;</code></pre>
+<pre><code># A tibble: 1 × 5
+  threshold true_positive false_positive true_negative false_negative
+      &lt;dbl&gt;         &lt;int&gt;          &lt;int&gt;         &lt;int&gt;          &lt;int&gt;
+1       0.8            36              2            52              3
+# A tibble: 1 × 4
+  accuracy precision recall    f1
+     &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
+1     0.95      0.95   0.92  0.94</code></pre>
 </div>
 <div class="cell-output-display">
 <div>

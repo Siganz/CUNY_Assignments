@@ -270,7 +270,8 @@ To make it cleaner:
 ```{r}
 evaluate_threshold <- function(df, threshold) {
   m <- threshold_prediction(df, threshold)
-  print(m)
+  print(m[,1:5])
+  print(m[, 6:ncol(m)])
   confusion_plot(m)
 }
 
