@@ -19,13 +19,15 @@ For this assignment I'll connect to an api via R, ChatGPT recommended the follow
 ```{r}
 library(httr2)
 library(jsonlite)
+library(dotenv)
+library(tidyverse)
+library(slider)
 ```
 
 I also will set up a .env file to store my api key. I made sure to .gitignore it and also hide the output since it's a SECRET!
 
 ```{r}
 #| eval: false
-library(dotenv)
 load_dot_env()
 Sys.getenv("KEY")
 ```
@@ -42,48 +44,32 @@ resp <- request("https://api.coingecko.com/api/v3/ping") |>
 
 resp |> resp_body_json()
 ```
-$gecko_says
-[1] "(V3) To the Moon!"
 
 Looks like it works!
 
 This will be our API function it just uses the coingecko api's http request. The inputs of the function will allow us to choose which coin, date, and currency value we want to return from the request. Then it returns a tibble by using map_dfr, which just maps the JSON output into a tibble.
 ```{r}
-library(dplyr)
-library(purrr)
+#| eval: false
 
-get_coin_range <- function(coin,
-                           start = "2022-01-01",
-                           vs = "usd") {
+#Coingecko free API has a limitation of a year!
 
+get_coin_range <- function(coin, start, vs = "usd") {
   from <- as.numeric(as.POSIXct(start, tz = "UTC"))
-  to   <- as.numeric(Sys.time())
+  to <- as.numeric(Sys.time())
 
-  url <- sprintf(
-    "https://api.coingecko.com/api/v3/coins/%s/market_chart/range",
-    coin
-  )
+  url <- sprintf("https://api.coingecko.com/api/v3/coins/%s/market_chart/range",coin)
 
   resp <- request(url) |>
     req_headers(`x-cg-demo-api-key` = Sys.getenv("COINGECKO_KEY")) |>
-    req_url_query(
-      vs_currency = vs,
-      from = from,
-      to = to,
-      precision = 2
-    ) |>
+    req_url_query(vs_currency = vs, from = from, to = to, precision = 2) |>
     req_perform() |>
     resp_body_json()
 
-  map_dfr(resp$prices, \(x)
-    tibble(
-      coin  = coin,
-      date  = as.Date(x[[1]] / 1000,
-                      origin = "1970-01-01",
-                      tz = "UTC"),
-      price = x[[2]]
-    )
-  )
+  map_dfr(resp$prices, \(x) tibble(
+    coin = coin,
+    date = as.Date(x[[1]] / 1000, origin = "1970-01-01"),
+    price = x[[2]]
+  ))
 }
 
 ```
@@ -104,3 +90,112 @@ ytd <-function(df){}
 That should be it!
 
 ### Codebase
+
+#### Loading all the api related functions
+```{r}
+# Connects to API using httr2
+
+# coin:   api val for symbol fetch
+# start:  current date - 365 (api limit of a year)
+# vs:     api val for currency fetch
+
+get_coin <- function(coin, start, vs = "usd", key) {
+  from <- as.numeric(as.POSIXct(start, tz = "UTC"))
+  to <- as.numeric(Sys.time())
+  
+  # Demo account url link + coin variable
+  url <- glue::glue("https://api.coingecko.com/api/v3/coins/{coin}/market_chart/range")
+  
+  # request url
+  resp <- request(url) |>
+    # changing the api key value to my key
+    req_headers(`x-cg-demo-api-key` = key) |>
+    # setting the query parameters
+    req_url_query(vs_currency = vs, from = from, to = to, precision = 2) |>
+    # just to make sure I don't throw too many requests in a small span of time
+    req_throttle(rate = 10/60) |>
+    # retry max 8 times if error
+    req_retry(
+      max_tries = 8,
+      is_transient = \(resp) resp_status(resp) %in% c(408, 429, 500, 502, 503, 504)
+    ) |>
+    # init
+    req_perform() |>
+    # returns list to resp
+    resp_body_json()
+  
+  # turns list into df, using \x for quick tibble function
+  purrr::map_dfr(resp$prices, \(x) tibble::tibble(
+    coin = coin,
+    date = x[[1]],
+    price = x[[2]]
+  ))
+}
+
+# function to run get_coin and export df to csv in cwd
+
+write_coin <- function(coin, start, key, vs = "usd") {
+  df <- get_coin(coin = coin, start = start, vs = vs, key = key)
+  readr::write_csv(df, glue::glue("{coin}.csv"))
+}
+
+```
+
+#### Fetch run-time
+```{r}
+# If I want to debug, flip to TRUE
+overwrite <- FALSE
+
+# var setup
+load_dot_env()
+key <- Sys.getenv("KEY")
+start <- format(Sys.Date() - 365, "%Y-%m-%d")
+coins <- c("bitcoin", "ethereum", "solana")
+
+purrr::walk(coins, \(coin) {
+  csv <- paste0(coin, ".csv")
+  if (overwrite || !file.exists(csv)) {
+    write_coin(coin = coin, start = start, key = key)
+  }
+})
+
+```
+
+####
+
+```{r}
+
+df <- readr::read_csv("bitcoin.csv") |>
+  mutate(index = row_number(), .before = 1,
+         date_a = as.Date(lubridate::as_datetime(date / 1000, tz = "UTC"))) |>
+  arrange(date_a) |>
+  select(index, coin, date = date_a, price)
+head(df)
+
+moving_average <- function(coin_data, n = 6) {
+  n <- n - 1
+  coin_data |> 
+  mutate(rolling_average = slide_mean(price, before = n, complete = TRUE)) |>
+  select(index, coin, price, date, rolling_average)
+} 
+
+year_to_date <- function(df) {
+  avg_ytd <- df |>
+  filter(date >= floor_date(max(date), "year")) |>
+  summarize(avg_ytd = mean(price, na.rm = TRUE)) |>
+  pull(avg_ytd)
+}
+
+assignment_3 <- function(df, coins) {
+  purrr::walk(coins)
+}
+
+df_ma <- moving_average(df, 6)
+avg_ytd <- year_to_date(df)
+
+glue::glue("{coin")
+
+```
+
+
+
