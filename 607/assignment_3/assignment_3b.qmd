@@ -1,20 +1,22 @@
 ---
 title: "assignment_3b"
 format: html
+toc: true
+toc-depth: 5
+toc-location: left
 ---
 
-## Window Functions
+## Assignment
 
-Find (or ask an LLM to generate!) a dataset that includes time series for two or more separate items.  For example, you could use end of day stock or cryptocurrency prices since Jan 1, 2022 for several instruments.
-Use window functions (in SQL or dplyr) to calculate the year-to-date average and the six-day moving averages for each item.
+Find (or ask an LLM to generate!) a dataset that includes time series for two or more separate items. For example, you could use end of day stock or cryptocurrency prices since Jan 1, 2022 for several instruments. Use window functions (in SQL or dplyr) to calculate the year-to-date average and the six-day moving averages for each item.
 
-You may work in a small team on this assignment.  
+You may work in a small team on this assignment.
 
 ### Approach
 
-I'll use coingecko API to get end of day prices for BTC, ETH, & SOL. I will create 6 day moving average (mean of price in a window of 6 days + current) and a year (mean of price in a window of 360 days + current). 
+I'll use coingecko API to get end of day prices for BTC, ETH, & SOL. I will create 6 day moving average (mean of price in a window of 6 days + current) and a year (mean of price in a window of 360 days + current).
 
-For this assignment I'll connect to an api via R, ChatGPT recommended the following libraries. 
+For this assignment I'll connect to an api via R, ChatGPT recommended the following libraries.
 
 ```{r}
 library(httr2)
@@ -22,6 +24,8 @@ library(jsonlite)
 library(dotenv)
 library(tidyverse)
 library(slider)
+library(arrow)
+library(ggthemes)
 ```
 
 I also will set up a .env file to store my api key. I made sure to .gitignore it and also hide the output since it's a SECRET!
@@ -32,7 +36,7 @@ load_dot_env()
 Sys.getenv("KEY")
 ```
 
-I'll test the api connection: 
+I'll test the api connection:
 
 ```{r}
 #| eval: false
@@ -48,10 +52,9 @@ resp |> resp_body_json()
 Looks like it works!
 
 This will be our API function it just uses the coingecko api's http request. The inputs of the function will allow us to choose which coin, date, and currency value we want to return from the request. Then it returns a tibble by using map_dfr, which just maps the JSON output into a tibble.
+
 ```{r}
 #| eval: false
-
-#Coingecko free API has a limitation of a year!
 
 get_coin_range <- function(coin, start, vs = "usd") {
   from <- as.numeric(as.POSIXct(start, tz = "UTC"))
@@ -62,7 +65,7 @@ get_coin_range <- function(coin, start, vs = "usd") {
   resp <- request(url) |>
     req_headers(`x-cg-demo-api-key` = Sys.getenv("COINGECKO_KEY")) |>
     req_url_query(vs_currency = vs, from = from, to = to, precision = 2) |>
-    req_perform() |>
+    httr2::req_perform() |>
     resp_body_json()
 
   map_dfr(resp$prices, \(x) tibble(
@@ -76,9 +79,9 @@ get_coin_range <- function(coin, start, vs = "usd") {
 
 So I'll use that function to create df per coin:
 
-- btc <- get_coin_range("bitcoin", "2022-01-01", "usd")
-- eth <- get_coin_range("ethereum", "2022-01-01", "usd")
-- sol <- get_coin_range("solana", "2022-01-01", "usd")
+-   btc \<- get_coin_range("bitcoin", "2022-01-01", "usd")
+-   eth \<- get_coin_range("ethereum", "2022-01-01", "usd")
+-   sol \<- get_coin_range("solana", "2022-01-01", "usd")
 
 Then I'll just create a window for 6 days moving average & yearly to date average. Or maybe create fucntions for each:
 
@@ -89,42 +92,46 @@ ytd <-function(df){}
 
 That should be it!
 
-### Codebase
+## Codebase
 
-#### Loading all the api related functions
+### Discussion
+
+I went a little overboard with this assignment! However, it's really is helping understand R more. Here is the workflow:
+
+**CoinGecko** https://www.coingecko.com/en/api https://www.coingecko.com/en/api/pricing https://docs.coingecko.com/v3.0.1/reference/coins-id-market-chart-range
+
+I used the following docs to create a demo api-key, then used the references to figure out what was needed to establish a connection.One issue is that there is no direct R plug-and-play. So I had to make my own.I inquired with ChatGPT about the package to use and it helped me frame the httr2 requests. Which, after an hour I kinda understood that all I'm doing is replacing the url request with the correct schema to get the correct data and to prove my private-key.
+
+Next was dealing with the date, I had to learn about UNIX time and CoinGecko actually returns data in ms, so I had to convert to s (ms/1000). Then I had to learn about POSIXct and figuring out what exact date input I needed to use (https://r4ds.hadley.nz/datetimes.html). Then I had hit a roadblock with the API because they only allowed the demo keys to get 365 days of data from current date, however I had issues that I couldn't solve, so I decided to do Sys.Date() - 364 instead of 365 and it worked(?).
+
+After the api was established and I was able to receive the JSON, I was originally converting it to CSV. However, CSV is kinda old and I have an annoying history with that file type so I instead wanted to use Parquet, because it's a newer file storage I know about and haven't gotten the ability to work with - library(arrow) was called and installed for that to happen. I didn't get too in depth with all the parameters, but at least I familiarized myself with the library.
+
+I was able to create the functions to fetch data -\> write data -\> read data -\> plot data. However, the hardest part was tying them all together, which was the bulk of the work. I had some familiarity with Python's usage of main() when calling a script by itself, so I decided to create one in R! Also, due to the decision of choosing three different cryptocurrencies, I needed to make use of looping. I used the purrr package to map and walk over vectors and apply functions, which integrates more cleanly with data frames than the base apply() family.
+
+The main() generates parquet files, I read them them, group them by year_to_date or moving_average, then generate ggplots to display the data. The API access makes it a bit tricky for me to allow you to replicate, especially with the private keys. However, I'm hopeful that the rpubs will be sufficient.
+
+### Functions
+
 ```{r}
-# Connects to API using httr2
 
-# coin:   api val for symbol fetch
-# start:  current date - 365 (api limit of a year)
-# vs:     api val for currency fetch
-
-get_coin <- function(coin, start, vs = "usd", key) {
+fetch_coin <- function(coin, start, vs = "usd", key) {
+  stopifnot(nzchar(key))
   from <- as.numeric(as.POSIXct(start, tz = "UTC"))
   to <- as.numeric(Sys.time())
   
-  # Demo account url link + coin variable
   url <- glue::glue("https://api.coingecko.com/api/v3/coins/{coin}/market_chart/range")
   
-  # request url
   resp <- request(url) |>
-    # changing the api key value to my key
     req_headers(`x-cg-demo-api-key` = key) |>
-    # setting the query parameters
     req_url_query(vs_currency = vs, from = from, to = to, precision = 2) |>
-    # just to make sure I don't throw too many requests in a small span of time
     req_throttle(rate = 10/60) |>
-    # retry max 8 times if error
     req_retry(
       max_tries = 8,
       is_transient = \(resp) resp_status(resp) %in% c(408, 429, 500, 502, 503, 504)
     ) |>
-    # init
     req_perform() |>
-    # returns list to resp
     resp_body_json()
   
-  # turns list into df, using \x for quick tibble function
   purrr::map_dfr(resp$prices, \(x) tibble::tibble(
     coin = coin,
     date = x[[1]],
@@ -132,70 +139,106 @@ get_coin <- function(coin, start, vs = "usd", key) {
   ))
 }
 
-# function to run get_coin and export df to csv in cwd
-
-write_coin <- function(coin, start, key, vs = "usd") {
-  df <- get_coin(coin = coin, start = start, vs = vs, key = key)
-  readr::write_csv(df, glue::glue("{coin}.csv"))
+save_parquet <- \(df, name, dir = ".") {
+  path <- file.path(dir, paste0(name, ".parquet"))
+  arrow::write_parquet(df, path)
+  path
 }
 
-```
+prep_coin_df <- function(df) {
+  df|>
+    mutate(
+      index = row_number(),
+      date_a = as.Date(lubridate::as_datetime(date / 1000, tz = "UTC"))) |>
+    arrange(date_a) |>
+    select(index, coin, date = date_a, price)
+}
 
-#### Fetch run-time
-```{r}
-# If I want to debug, flip to TRUE
-overwrite <- FALSE
-
-# var setup
-load_dot_env()
-key <- Sys.getenv("KEY")
-start <- format(Sys.Date() - 365, "%Y-%m-%d")
-coins <- c("bitcoin", "ethereum", "solana")
-
-purrr::walk(coins, \(coin) {
-  csv <- paste0(coin, ".csv")
-  if (overwrite || !file.exists(csv)) {
-    write_coin(coin = coin, start = start, key = key)
-  }
-})
-
-```
-
-####
-
-```{r}
-
-df <- readr::read_csv("bitcoin.csv") |>
-  mutate(index = row_number(), .before = 1,
-         date_a = as.Date(lubridate::as_datetime(date / 1000, tz = "UTC"))) |>
-  arrange(date_a) |>
-  select(index, coin, date = date_a, price)
-head(df)
-
-moving_average <- function(coin_data, n = 6) {
+moving_average <- function(df, n = 6) {
   n <- n - 1
-  coin_data |> 
-  mutate(rolling_average = slide_mean(price, before = n, complete = TRUE)) |>
-  select(index, coin, price, date, rolling_average)
+  df |> 
+  mutate(moving_average = slide_mean(price, before = n, complete = TRUE)) |>
+  select(index, coin, price, date, moving_average)
 } 
 
 year_to_date <- function(df) {
-  avg_ytd <- df |>
-  filter(date >= floor_date(max(date), "year")) |>
-  summarize(avg_ytd = mean(price, na.rm = TRUE)) |>
-  pull(avg_ytd)
+  df |>
+    mutate(as_of = floor_date(max(date), "year")) |>
+    filter(date >= as_of) |>
+    summarize(avg_ytd = mean(price, na.rm = TRUE), .by = c(coin, as_of))
 }
 
-assignment_3 <- function(df, coins) {
-  purrr::walk(coins)
+main <- function(coin, start, key, vs = "usd", dir = ".", affix = "", n = 6) {
+  df <- fetch_coin(coin = coin, start = start, vs = vs, key = key) |>
+    prep_coin_df()
+
+  ytd <- year_to_date(df)
+  mva <- moving_average(df, n = n)
+
+  tag <- if (nzchar(affix)) paste0("_", affix) else ""
+
+  c(save_parquet(ytd, name = paste0(coin, tag, "_ytd"), dir = dir),
+    save_parquet(mva, name = paste0(coin, tag, "_mva"), dir = dir))
 }
-
-df_ma <- moving_average(df, 6)
-avg_ytd <- year_to_date(df)
-
-glue::glue("{coin")
 
 ```
 
+### Main Run-time
 
+```{r}
 
+# Main Setup
+load_dot_env()
+key <- Sys.getenv("KEY")
+start <- format(Sys.Date() - 364, "%Y-%m-%d")
+coins <- c("bitcoin", "ethereum", "solana")
+from <- as.numeric(as.POSIXct(start, tz = "UTC"))
+dir <- paste0(getwd(),"/data")
+n <- 6
+affix = ""
+
+paths <- purrr::map(coins, \(coin) main(
+  coin  = coin,
+  start = start,
+  key   = key,
+  dir   = dir,
+  affix = affix,
+  n     = n
+)) |>
+  unlist(use.names = FALSE)
+
+purrr::walk(paths,\(x){
+  df <- arrow::read_parquet(x)
+  glimpse(df)
+})
+```
+
+### ggplot
+
+```{r}
+mva_paths <- paths[str_detect(paths, "_mva\\.parquet$")]
+ytd_paths <- paths[str_detect(paths, "_ytd\\.parquet$")]
+
+mva <- purrr::map_dfr(mva_paths, arrow::read_parquet)
+ytd <- purrr::map_dfr(ytd_paths, arrow::read_parquet)
+
+tibble(ytd)
+
+mva |>
+  ggplot(aes(x = date, y = price, color = coin)) +
+  geom_point() +
+  theme_fivethirtyeight()
+
+mva |>
+  group_split(coin) |>
+  walk(\(d) {
+    print(
+      ggplot(d, aes(x = date)) +
+        geom_line(aes(y = price), na.rm = TRUE, size = 1) +
+        geom_line(aes(y = moving_average), color = "magenta1", na.rm = TRUE, size = .8, linetype = 2) +
+        scale_y_continuous(limits = c(0,NA)) +
+        labs(title = unique(d$coin)) +
+        theme_fivethirtyeight()
+    )
+  })
+```

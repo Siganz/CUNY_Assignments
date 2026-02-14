@@ -1,6 +1,9 @@
 ---
 title: "assignment_3a"
-format: html
+format: pdf
+toc: true
+toc-depth: 5
+toc-location: left
 ---
 
 ## Global Baseline Estimates
