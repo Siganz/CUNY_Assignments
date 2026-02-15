@@ -112,3 +112,81 @@ Because row means and column means both already include the global mean. Subtrac
 
 **A:**  
 No. The subtraction is part of defining “relative to average.” Once you precompute effects, the final formula is purely additive.
+
+---
+
+### Q: What is UNIX time?
+
+**A:**  
+A timestamp stored as “seconds since 1970-01-01 00:00:00 UTC.” In your data, CoinGecko returns **milliseconds**, so you divide by **1000** before converting to datetime.
+
+---
+
+### Q: What is `POSIXct` (and why do I keep seeing it)?
+
+**A:**  
+It’s R’s common datetime storage type: a numeric count of seconds since the UNIX epoch plus timezone metadata. It’s the practical “workhorse” datetime class.
+
+---
+
+### Q: What does `as.POSIXct(start, tz = "UTC")` do here?
+
+**A:**  
+It parses your `"YYYY-MM-DD"` string into a UTC datetime so you can convert it to a numeric epoch (`from`) for the API query.
+
+---
+
+### Q: What is `request()` / `req_*()` / `resp_*()`?
+
+**A:**  
+That’s **httr2**’s pipeline style:
+- `request(url)` creates a request object
+- `req_headers()`, `req_url_query()`, `req_throttle()`, `req_retry()` modify it
+- `req_perform()` sends it
+- `resp_body_json()` parses the response body into R objects
+
+---
+
+### Q: What is `req_retry()`?
+
+**A:**  
+It retries transient failures up to `max_tries = n`, but only for status codes you call “transient” (408, 429, 5xx). That’s the right idea: don’t retry on “you messed up.”
+
+---
+
+### Q: What is `resp_status(resp)`?
+
+**A:**  
+It extracts the HTTP status code (e.g., 200, 401, 429, 503) so you can decide whether to retry.
+
+---
+
+### Q: What does `resp_body_json()` return?
+
+**A:**  
+Parsed JSON as an R list. For this endpoint, you use `resp$prices`, which is a list of `[timestamp_ms, price]` pairs.
+
+---
+
+### Q: What is `purrr::map_dfr`?
+
+**A:**  
+It maps each price pair, converts it into a one-row tibble, then row-binds them all into one data frame.
+
+---
+
+### Q: Difference between `map()`, `map_dfr()`, and `walk()`?
+
+**A:**  
+- `map()` → returns a list
+- `map_dfr()` → returns a single data frame (row-binds outputs)
+- `walk()` → returns nothing useful; use for “do this for each element”
+
+---
+
+### Q: Why `unlist(use.names = FALSE)` on `paths`?
+
+**A:**  
+Because `map()` gives you a list-of-vectors. `unlist()` flattens it into one character vector of file paths.
+
+---

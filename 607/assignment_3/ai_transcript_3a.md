@@ -45,40 +45,6 @@ YTD average = cumulative sum / row index
 
 ---
 
-### Q: What does the `get_coin_range()` wrapper do?
-
-**A:**  
-It abstracts the boilerplate:
-- Accepts coin, date range, currency
-- Calls the API
-- Parses JSON
-- Converts nested lists into tidy rows (`map_dfr()`)
-
-Pipeline:
-```
-API → JSON → list → rows → tibble
-```
-
----
-
-### Q: How should API keys and DB credentials be handled?
-**A:**  
-Never hardcode them. Use environment variables.
-
----
-
-### Q: What is a `.env` file?
-**A:**  
-A plain text file containing key–value pairs:
-
-```
-KEY=value
-```
-
-Quotes are only needed if the value contains spaces.
-
----
-
 ### Q: What’s the difference between `.env` and `.Renviron`?
 **A:**  
 - `.Renviron` → auto-loaded by R  
@@ -86,34 +52,247 @@ Quotes are only needed if the value contains spaces.
 
 ---
 
-### Q: What inputs does `dbConnect()` need for Postgres?
+### Q: What problem is a *global baseline estimate* trying to solve?
 
 **A:**  
-Driver + connection metadata, typically sourced from environment variables:
-
-```r
-dbConnect(
-  RPostgres::Postgres(),
-  dbname   = Sys.getenv("DB_NAME"),
-  host     = Sys.getenv("DB_HOST"),
-  port     = 5432,
-  user     = Sys.getenv("DB_USER"),
-  password = Sys.getenv("DB_PASSWORD")
-)
-```
+Missing ratings. Specifically: *what’s a reasonable default guess* when a user hasn’t rated an item yet.  
+Baseline models give you a defensible first approximation before doing anything fancy.
 
 ---
 
-### Q: What architecture did this pipeline implement?
+### Q: What is the **global mean**?
 
 **A:**  
-A clean, reproducible ingest pattern:
+The average of *all observed ratings*:
 
-1. Secure secrets  
-2. Wrap external API  
-3. Pull BTC / ETH / SOL  
-4. Normalize into one table  
-5. Apply window analytics  
-6. Optionally persist to Postgres  
+\[
+\mu = \frac{1}{N}\sum_{(u,i)\in R} r_{ui}
+\]
 
-In short: **ingest → tidy → analyze → store**.
+It answers: *“On average, how do people rate things in this system?”*
+
+---
+
+### Q: Why not just use the global mean for everything?
+
+**A:**  
+Because users and items are biased.
+
+- Some users rate high → generous
+- Some items are widely liked → strong pull upward
+
+The global mean ignores systematic structure.
+
+---
+
+### Q: What is a **rater effect** (a.k.a. user effect / row effect)?
+
+**A:**  
+How much a user deviates from the global mean *on average*.
+
+\[
+b_u = \bar{r}_u - \mu
+\]
+
+Interpretation:
+- Positive → generous rater
+- Negative → harsh rater
+
+---
+
+### Q: What is an **item effect** (a.k.a. column effect)?
+
+**A:**  
+How much an item deviates from the global mean *on average*.
+
+\[
+b_i = \bar{r}_i - \mu
+\]
+
+Interpretation:
+- Positive → broadly liked item
+- Negative → broadly disliked item
+
+---
+
+### Q: Why “row effect” vs “column effect”?
+
+**A:**  
+It’s matrix language.
+
+- Rows = users (raters)
+- Columns = items
+
+Same math, different framing. In recommender systems, “user effect” and “item effect” are more common.
+
+---
+
+### Q: What is the **baseline prediction equation**?
+
+**A:**  
+
+\[
+\hat{r}_{ui} = \mu + b_u + b_i
+\]
+
+This is the **global baseline estimate**.
+
+---
+
+### Q: What does this equation assume?
+
+**A:**  
+Additivity and independence:
+- User bias and item bias are separable
+- No interaction effects
+- No personalization beyond averages
+
+It’s deliberately simple.
+
+---
+
+### Q: Why is this still useful if it’s so simple?
+
+**A:**  
+Because it’s:
+- interpretable
+- stable
+- hard to overfit
+- fast to compute
+- a strong benchmark
+
+Many “advanced” models barely beat a good baseline.
+
+---
+
+### Q: Where does **expected value** come in?
+
+**A:**  
+The baseline prediction is the **expected rating** given only:
+- who the user is
+- what the item is
+
+Formally:
+\[
+\mathbb{E}[R_{ui} \mid u, i] \approx \mu + b_u + b_i
+\]
+
+---
+
+### Q: How did you estimate the rater and item effects in practice?
+
+**A:**  
+By empirical means:
+- compute each user’s mean rating
+- compute each item’s mean rating
+- subtract the global mean
+
+This is the *unregularized* version.
+
+---
+
+### Q: Why is this technically risky?
+
+**A:**  
+Sparse data.
+
+- Users with 1 rating get extreme effects
+- Items with few ratings get noisy estimates
+
+In production, you’d regularize.
+
+---
+
+### Q: What does regularization look like conceptually?
+
+**A:**  
+Shrink effects toward zero:
+
+\[
+b_u = \frac{\sum_i (r_{ui} - \mu)}{\lambda + n_u}
+\]
+
+Same idea for items.  
+More data → less shrinkage.
+
+---
+
+### Q: If user's has no data, why is `rater_effect = 0` not  `rater_effect = NA`?
+
+**A:**  
+No data ⇒ no deviation signal.
+
+So the safest assumption is:
+\[
+b_u = 0
+\]
+
+They’re treated as “average.”
+
+---
+
+### Q: Why does that make sense statistically?
+
+**A:**  
+Zero is the *prior mean* of the effect.  
+Without evidence, don’t invent bias.
+
+---
+
+### Q: What does the model predict for a brand-new user?
+
+**A:**  
+\[
+\hat{r}_{ui} = \mu + b_i
+\]
+
+Only item popularity matters.
+
+---
+
+### Q: What does it predict for a brand-new item?
+
+**A:**  
+\[
+\hat{r}_{ui} = \mu + b_u
+\]
+
+Only user generosity matters.
+
+---
+
+### Q: When does this model completely fail?
+
+**A:**  
+When:
+- interactions dominate (taste-specific effects)
+- users behave inconsistently
+- ratings are non-additive
+- context matters (time, mood, genre)
+
+That’s when you move to matrix factorization or neural models.
+
+---
+
+### Q: Why do recommender systems *still* start here?
+
+**A:**  
+Because every serious model decomposes into:
+
+\[
+\text{baseline} + \text{interaction residual}
+\]
+
+If your baseline is wrong, everything on top is garbage.
+
+---
+
+### Q: So, what's the base summary of it?
+
+**A:**  
+Global baseline estimates are:
+- the statistical “idle speed”
+- the null model you must beat
+- the clean separation of bias from signal
+
+They’re boring — and indispensable.
