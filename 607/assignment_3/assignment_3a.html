@@ -349,6 +349,128 @@ SS_{Total} = SS_{Rows} + SS_{Columns} + SS_{Residual}
 </section>
 <section id="codebase" class="level2">
 <h2 class="anchored" data-anchor-id="codebase">Codebase</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"movie_ratings.csv"</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span> <span class="fu">select</span>(name, title, rating)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>df</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   name                    title rating
+1  Alex One Battle After Another      5
+2  Alex                  Begonia      4
+3  Alex          Wicked for Good      4
+4  Alex          The Materialist      3
+5  Alex                  Sinners     NA
+6   Bri One Battle After Another      4
+7   Bri                  Begonia      3
+8   Bri          Wicked for Good      5
+9   Bri          The Materialist     NA
+10  Bri                  Sinners      4
+11 Chen One Battle After Another     NA
+12 Chen                  Begonia      5
+13 Chen          Wicked for Good      4
+14 Chen          The Materialist      3
+15 Chen                  Sinners      4
+16 Devi One Battle After Another      3
+17 Devi                  Begonia     NA
+18 Devi          Wicked for Good      3
+19 Devi          The Materialist      4
+20 Devi                  Sinners      5
+21  Eli One Battle After Another      4
+22  Eli                  Begonia      3
+23  Eli          Wicked for Good     NA
+24  Eli          The Materialist      5
+25  Eli                  Sinners      3
+26 Fran One Battle After Another      5
+27 Fran                  Begonia      3
+28 Fran          Wicked for Good      4
+29 Fran          The Materialist      4
+30 Fran                  Sinners     NA</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># rater mean</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>s_name <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">rater_mean =</span> <span class="fu">mean</span>(rating, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.by =</span> name)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co"># item mean</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>s_title <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">item_mean =</span> <span class="fu">mean</span>(rating, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.by =</span> title)</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="co"># global mean</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>s_global <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">mean =</span> <span class="fu">mean</span>(rating, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>global_mean <span class="ot">&lt;-</span> s_global<span class="sc">$</span>mean</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>global_mean</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 3.916667</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># rater effect</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>s_name <span class="ot">&lt;-</span> s_name <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">rater_effect =</span> rater_mean <span class="sc">-</span> global_mean)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>s_title <span class="ot">&lt;-</span> s_title <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">item_effect =</span> item_mean <span class="sc">-</span> global_mean)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>df2 <span class="ot">&lt;-</span> df</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>df2 <span class="ot">&lt;-</span> df2 <span class="sc">|&gt;</span> <span class="fu">left_join</span>(s_name, <span class="fu">join_by</span>(name))<span class="sc">|&gt;</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(s_title, <span class="fu">join_by</span>(title)) <span class="sc">|&gt;</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">rating =</span> <span class="fu">if_else</span>(<span class="fu">is.na</span>(rating), global_mean <span class="sc">+</span> rater_effect <span class="sc">+</span> item_effect, rating),</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">rating =</span> <span class="fu">round</span>(rating))</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df2)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  name                    title rating rater_mean rater_effect item_mean
+1 Alex One Battle After Another      5          4   0.08333333       4.2
+2 Alex                  Begonia      4          4   0.08333333       3.6
+3 Alex          Wicked for Good      4          4   0.08333333       4.0
+4 Alex          The Materialist      3          4   0.08333333       3.8
+5 Alex                  Sinners      4          4   0.08333333       4.0
+6  Bri One Battle After Another      4          4   0.08333333       4.2
+  item_effect
+1  0.28333333
+2 -0.31666667
+3  0.08333333
+4 -0.11666667
+5  0.08333333
+6  0.28333333</code></pre>
+</div>
+</div>
+<p>We calculated the rating for individuals with NA ratings. Let’s say we were to add 1 person to the dataframe with ratings of NA per movie?</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>df3 <span class="ot">&lt;-</span> df2[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>,] <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">rating =</span> <span class="cn">NA</span>, <span class="at">name =</span> <span class="st">"Shawn"</span>, <span class="at">rater_mean =</span> <span class="cn">NA</span>, <span class="at">rater_effect =</span> <span class="dv">0</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>df3</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   name                    title rating rater_mean rater_effect item_mean
+1 Shawn One Battle After Another     NA         NA            0       4.2
+2 Shawn                  Begonia     NA         NA            0       3.6
+3 Shawn          Wicked for Good     NA         NA            0       4.0
+4 Shawn          The Materialist     NA         NA            0       3.8
+5 Shawn                  Sinners     NA         NA            0       4.0
+  item_effect
+1  0.28333333
+2 -0.31666667
+3  0.08333333
+4 -0.11666667
+5  0.08333333</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Oh, look. Shawn didn't watch any movies!</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co"># When rater is NA, it's assumed that rater_effect is zero.</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Meaning the deviation from the global mean is zero.</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="co"># We calculate the ratings using the global baseline estimate!</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>df3 <span class="ot">&lt;-</span> df3 <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">rating =</span> (global_mean <span class="sc">+</span> item_effect))</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>df3<span class="sc">|&gt;</span> <span class="fu">select</span>(name, title, rating) <span class="sc">|&gt;</span> <span class="fu">as_tibble</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 5 × 3
+  name  title                    rating
+  &lt;chr&gt; &lt;chr&gt;                     &lt;dbl&gt;
+1 Shawn One Battle After Another    4.2
+2 Shawn Begonia                     3.6
+3 Shawn Wicked for Good             4  
+4 Shawn The Materialist             3.8
+5 Shawn Sinners                     4  </code></pre>
+</div>
+</div>
 </section>
 
 </main>

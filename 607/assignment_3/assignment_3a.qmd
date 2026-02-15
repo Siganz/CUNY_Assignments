@@ -1,6 +1,6 @@
 ---
 title: "assignment_3a"
-format: pdf
+format: html
 toc: true
 toc-depth: 5
 toc-location: left
@@ -147,3 +147,59 @@ So, it would need to do the following:
 That should get me a completed dataset where na values are filled with ratings from a global baseline estimate. Pretty neat. 
 
 ## Codebase
+
+```{r}
+
+df <- read.csv("movie_ratings.csv")
+df <- df |> select(name, title, rating)
+df
+
+# rater mean
+
+s_name <- df |>
+  summarize(rater_mean = mean(rating, na.rm = TRUE), .by = name)
+
+# item mean
+
+s_title <- df |>
+  summarize(item_mean = mean(rating, na.rm = TRUE), .by = title)
+
+# global mean
+
+s_global <- df |>
+  summarize(mean = mean(rating, na.rm = TRUE))
+
+global_mean <- s_global$mean
+global_mean
+
+# rater effect
+
+s_name <- s_name |> mutate(rater_effect = rater_mean - global_mean)
+s_title <- s_title |> mutate(item_effect = item_mean - global_mean)
+
+df2 <- df
+df2 <- df2 |> left_join(s_name, join_by(name))|>
+  left_join(s_title, join_by(title)) |>
+  mutate(rating = if_else(is.na(rating), global_mean + rater_effect + item_effect, rating),
+         rating = round(rating))
+
+head(df2)
+```
+
+We calculated the rating for individuals with NA ratings. Let's say we were to add 1 person to the dataframe with ratings of NA per movie?
+
+```{r}
+
+df3 <- df2[1:5,] |> mutate(rating = NA, name = "Shawn", rater_mean = NA, rater_effect = 0)
+df3
+
+# Oh, look. Shawn didn't watch any movies!
+# When rater is NA, it's assumed that rater_effect is zero.
+# Meaning the deviation from the global mean is zero.
+
+# We calculate the ratings using the global baseline estimate!
+df3 <- df3 |> mutate(rating = (global_mean + item_effect))
+df3|> select(name, title, rating) |> as_tibble()
+
+```
+
