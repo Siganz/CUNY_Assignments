@@ -1,0 +1,104 @@
+## Generative AI Usage Disclosure
+
+I used OpenAI’s ChatGPT (Version 5.2) as a generative AI tool to assist with this assignment. The tool was used for conceptual clarification, debugging, interpretation of error metrics, and validation of reasoning. All submitted code and analysis reflect my own understanding, and I can explain any portion of the work independently.
+
+**Citation**  
+OpenAI. (2026). *ChatGPT* (Version 5.2) [Large language model]. https://chat.openai.com. Accessed February 15, 2026.
+
+---
+
+### Q: How do we distinguish records in a raw character vector read with `readLines()`?
+
+**A:**  
+By using position. `seq_along(v)` creates an index vector that can be used with modulo (`%% 2`) to separate alternating lines belonging to the same logical record.
+
+---
+
+### Q: How do we subset odd and even positions in a vector?
+
+**A:**  
+Using index arithmetic on `seq_along(v)`:
+- odd positions: `seq_along(v) %% 2 != 0`
+- even positions: `seq_along(v) %% 2 == 0`
+
+---
+
+### Q: Why can’t `nrow()` be used on a vector?
+
+**A:**  
+Vectors are one-dimensional and do not have rows. Position-based logic must use indices, not row counts.
+
+---
+
+### Q: What does `mutate(across())` do operationally?
+
+**A:**  
+`mutate()` declares column modification.  
+`across()` specifies which columns are targeted.  
+The anonymous function (`~`) defines how each selected column vector is transformed.
+
+---
+
+### Q: What does `.x` represent inside `across()`?
+
+**A:**  
+`.x` is the full column vector currently being processed by `across()`, not a scalar value.
+
+---
+
+### Q: What does `match()` return?
+
+**A:**  
+`match()` returns index positions of values from one vector relative to another vector.
+
+---
+
+### Q: How are values retrieved using `match()`?
+
+**A:**  
+The indices returned by `match()` are used to subset another vector, returning the corresponding values.
+
+---
+
+### Q: Why does `sum(across())` not work inside `mutate()`?
+
+**A:**  
+`across()` returns a data frame. Scalar functions like `sum()` require vectors. Row-wise aggregation must use `rowSums()` or `rowMeans()`.
+
+---
+
+### Q: How do we compute a per-row aggregate across multiple columns?
+
+**A:**  
+Using `rowSums()` or `rowMeans()` applied to the result of `across()`.
+
+---
+
+### Q: How do we drop multiple columns using tidyverse syntax?
+
+**A:**  
+With negation in `select()`:
+`select(!all_of(cols))` when column names are stored in a character vector.
+
+---
+
+### Q: How do we get the number of elements in a vector?
+
+**A:**  
+Using `length()`.
+
+---
+
+### Q: How do we prevent Markdown from interpreting ASCII tables?
+
+**A:**  
+By wrapping the text in a fenced code block using triple backticks.
+
+---
+
+### Q: How do we enable a table of contents in Quarto or R Markdown?
+
+**A:**  
+By setting `toc: true` in the YAML header and controlling depth with `toc-depth`.
+
+---

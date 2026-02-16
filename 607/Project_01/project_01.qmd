@@ -1,0 +1,152 @@
+---
+title: "project_01"
+format: html
+toc: true
+toc-depth: 4
+---
+
+## Approach
+
+### Schema
+
+- name
+- state
+- total_points
+- pre_rating
+- opponent_pre_rating
+
+### Viewing the Data
+
+```
+-----------------------------------------------------------------------------------------
+ Pair | Player Name                     |Total|Round|Round|Round|Round|Round|Round|Round| 
+ Num  | USCF ID / Rtg (Pre->Post)       | Pts |  1  |  2  |  3  |  4  |  5  |  6  |  7  | 
+-----------------------------------------------------------------------------------------
+    1 | GARY HUA                        |6.0  |W  39|W  21|W  18|W  14|W   7|D  12|D   4|
+   ON | 15445895 / R: 1794   ->1817     |N:2  |W    |B    |W    |B    |W    |B    |W    |
+-----------------------------------------------------------------------------------------
+    2 | DAKSHESH DARURI                 |6.0  |W  63|W  58|L   4|W  17|W  16|W  20|W   7|
+   MI | 14598900 / R: 1553   ->1663     |N:2  |B    |W    |B    |W    |B    |W    |B    |
+-----------------------------------------------------------------------------------------
+    3 | ADITYA BAJAJ                    |6.0  |L   8|W  61|W  25|W  21|W  11|W  13|W  12|
+   MI | 14959604 / R: 1384   ->1640     |N:2  |W    |B    |W    |B    |W    |B    |W    |
+-----------------------------------------------------------------------------------------
+    4 | PATRICK H SCHILLING             |5.5  |W  23|D  28|W   2|W  26|D   5|W  19|D   1|
+   MI | 12616049 / R: 1716   ->1744     |N:2  |W    |B    |W    |B    |W    |B    |B    |
+-----------------------------------------------------------------------------------------
+    5 | HANSHI ZUO                      |5.5  |W  45|W  37|D  12|D  13|D   4|W  14|W  17|
+   MI | 14601533 / R: 1655   ->1690     |N:2  |B    |W    |B    |W    |B    |W    |B    |
+-----------------------------------------------------------------------------------------
+```
+Use gsub to remove -
+                                                                                         
+- Pair | Player Name                     |Total|Round|Round|Round|Round|Round|Round|Round| 
+- Num  | USCF ID / Rtg (Pre->Post)       | Pts |  1  |  2  |  3  |  4  |  5  |  6  |  7  |
+                                                                                         
+- 1 | GARY HUA                        |6.0  |W  39|W  21|W  18|W  14|W   7|D  12|D   4|
+- ON | 15445895 / R: 1794   ->1817     |N:2  |W    |B    |W    |B    |W    |B    |W    |
+                                                                                         
+I'm wondering if it's even worth saving the headers. We could just readline into a vector where each row would just be the complete line. So you can just vector[3:] and get the important part:
+
+- 1 | GARY HUA                        |6.0  |W  39|W  21|W  18|W  14|W   7|D  12|D   4|
+- ON | 15445895 / R: 1794   ->1817     |N:2  |W    |B    |W    |B    |W    |B    |W    |   
+
+sub "|W, |L, |N, |B, |W " into ' | ' & / into ' '
+- strip whitespace 
+
+- 1 | GARY L HUA | 6.0 | 39 | 21 | 18 | 14 | 7 | 12 | 4
+- ON | 15445895 R: 1794 ->1817 | 2
+
+I notice that some players have this weird "980P12->1077P17" P thing in their rating.
+
+- sub `'->'` into ' | '
+  - gives us 980P12 1077P17
+- sub `P\\d+` into ' ' 
+  - gives us 980 1077
+- sub `R:` into ' ' and `N:` into ' '
+- strip whitespace
+
+- 1 | GARY L HUA | 6.0 | 39 | 21 | 18 | 14 | 7 | 12 | 4
+- ON | 15445895 | 1794 | 1817 | 2
+
+So the schema reads as such
+
+- odd_rows
+  - id, name, points, opponent id 1 -> 7
+- even_rows 
+  - state, match id, pre rating, post rating
+  
+`v <- readlines("tournamentinfo.txt")`
+
+We can do `df <- tibble(raw_string = v) |> mutate(index = row_number())` and `str_split()` by `|`, drop `raw_string`.Might have to strip white space.
+
+`df1 <- df |> filter(index %% 2 != 0)`
+`df2 <- df |> filter(index %% 2 == 0)`
+
+- df1 schema
+  - col1 = id
+  - col2 = name
+  - col4 = total_points
+  - col5+ = opponents
+
+`df1 <- select(index, id, name, total_points)`
+
+We need keys because now index is disjointed. df1 would be like 1 3 5. df2 would be 2 4 6. We could just index + 1 to df2 to match df1. 
+
+- df2 schema
+  - col1 = index
+  - col2 = state
+  - col3 = match_id
+  - col4 = pre_rating
+  - col5 = post_rating
+  - col6 = idk - can just drop it haha
+
+`df2 <- select(index, state, pre_rating, post_rating)`
+`df2 <- mutate(index = index + 1)`
+
+join via index
+
+`player_df <- df1 |> leftjoin(df2, by ='index')`
+
+- new schema
+  - index
+  - id
+  - name
+  - state
+  - pre_rating
+  - post_rating
+  - total_points
+  - opp_ + [1:7]
+
+- 1, 1, GARY HUA, ON, 15445895, 1794, 1817, 6.0, 39, 21, 18, 14, 7, 12, 4
+
+- The following need to be summarized. 
+  - post_rating by mean
+  - total_points by sum
+
+Need to perform a lookup function on the opponent columns, to the id, return pre-rating. Probably easier to just create a lookup table
+
+`lookup <- df |> select(id, pre_rating)`
+
+Then we can have a vector to store the column names for the opponents
+`op_cols <- paste0("opp_", 1:7)`
+
+So, we could do a pipe where
+
+`player_df |> mutate(across(all_of(op_cols)), ~ lookup$pre_rating[match(.x, lookup$id)]) |>`
+  `mutate(op_avg = rowMeans(across(all_of(op_cols)), na.rm = TRUE)) |>`
+  `select(!all_of(p_cols))`
+
+Mutate(across()) says, we are going to alter, across says these columns, the function (~) takes the lookup table by rating column and returns the value of the id match to subset. Then we mean all those rows, then we keep the mean, remove the op_cols. 
+
+**Objective**
+
+*Player’s Name, Player’s State, Total Number of Points, Player’s Pre-Rating, and Average Pre Chess Rating of Opponents*
+
+name, state, total_points, pre_rating, post_rating, op_avg
+
+That should be it!
+
+## Codebase
+
+**TODO**
