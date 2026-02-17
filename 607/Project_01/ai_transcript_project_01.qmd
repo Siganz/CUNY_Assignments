@@ -102,3 +102,133 @@ By wrapping the text in a fenced code block using triple backticks.
 By setting `toc: true` in the YAML header and controlling depth with `toc-depth`.
 
 ---
+
+---
+
+### Q: why use str_replace over gsub?
+
+**A:**  
+`str_replace()` (stringr) is consistent + pipe-friendly: it’s vectorized, predictable, and uses the same regex engine + argument order across the family (`str_detect`, `str_remove`, etc.).  
+`gsub()` (base) is fine, but it’s easier to misread/mis-order args, and doesn’t compose as nicely in tidyverse pipelines. Use `gsub()` when you want zero dependencies or you’re staying in base.
+
+---
+
+### Q: in separate does sep = use regex?
+
+**A:**  
+Yes—`tidyr::separate(..., sep=)` takes a **regex pattern**. So `sep="\\|"` splits on literal `|`, and `sep="\\s*\\|\\s*"` splits on pipes with optional surrounding whitespace.
+
+---
+
+### Q: how do you do perform str_strip for all columns in a pipe? across()?
+
+**A:**  
+Yep. Use `mutate(across(where(is.character), str_trim))` to trim all character columns.  
+If you truly want “all columns no matter what”, coerce inside: `mutate(across(everything(), ~ str_trim(as.character(.x))))` (usually not recommended).
+
+---
+
+### Q: how can i use across(everything()) to remove '' and replace with na?
+
+**A:**  
+Use `na_if()` after trimming:
+
+- Trim + turn empty string into `NA`:
+  `mutate(across(where(is.character), ~ na_if(str_trim(.x), "")))`
+
+That catches `""` and `"   "` (after trim) cleanly.
+
+---
+
+### Q: I am setting up a lookup table, but unsure how to do like excel's x lookup?
+
+**A:**  
+Two main idioms:
+
+1) **Join** (cleanest): make a key column, then `left_join(lookup, by="id")`.  
+2) **Match/index** (fast + simple): `lookup$value[match(key_vec, lookup$key)]`.  
+
+In mutate/across, `match()` is basically “XLOOKUP at scale”.
+
+---
+
+### Q: What is a named vector?
+
+**A:**  
+A vector where each element has a name attached, like a tiny key→value map.  
+Example vibe: `c(a=10, b=20)` where `"a"` and `"b"` are the keys.
+
+---
+
+### Q: how does setNames work for player_df$pre_rating, player_df$pair
+
+**A:**  
+`setNames(player_df$pre_rating, player_df$pair)` makes a named vector where:
+
+- values = `pre_rating`
+- names  = `pair`
+
+So you can do lookup via `vec["12"]` (or `vec[as.character(pair)]`).
+
+---
+
+### Q: how do I use this named vector in this: mutate(across(starts_with("opp")
+
+**A:**  
+Assuming `pre_by_pair <- setNames(player_df$pre_rating, player_df$pair)` and your `opp*` columns contain pair numbers:
+
+`mutate(across(starts_with("opp"), ~ unname(pre_by_pair[as.character(.x)])))`
+
+That replaces opponent pair IDs with their pre-ratings.
+
+---
+
+### Q: why should I use pick in a mutate instead of select
+
+**A:**  
+`pick()` selects a set of columns **inside** a verb without the extra `select()` hop.  
+It keeps everything in one mutate, reads clean, and avoids awkward `cur_data()` stuff. It’s basically “select columns right here, right now.”
+
+
+---
+
+### Q: why use pick over match?
+
+**A:**  
+They solve **different problems**.
+
+- **`pick()`** = *column selection*  
+  You use it when you want to operate **across columns within the same row** (e.g., row means, sums). It returns a data frame slice of selected columns.
+
+- **`match()`** = *value lookup*  
+  You use it when you want to map values in one vector to values in another (Excel-style lookup). It returns **indices**, not columns.
+
+**Rule of thumb:**
+- Row-wise math across multiple columns → `pick()`
+- Mapping IDs → values (join/XLOOKUP logic) → `match()`
+
+**Concrete contrast:**
+
+- `rowMeans(pick(starts_with("opp")))`  
+  → “average these opponent columns per row”
+
+- `lookup$rating[match(opp_id, lookup$id)]`  
+  → “replace this ID with its rating”
+
+If you try to use `match()` where `pick()` belongs, you’re fighting the language.  
+If you try to use `pick()` for lookups, you’re hallucinating Excel.
+
+---
+
+### Q: you can use -all_of ? What? R is confusing sometimes
+
+**A:**  
+In tidyselect, `-` means **drop these columns**. So:
+
+- `select(-all_of(cols_to_drop))` removes exactly those names.
+- `across(-all_of(cols), fn)` means “apply fn to everything except those cols”.
+
+It’s the same subtraction idea as set difference: “everything minus this set”.
+
+---
+

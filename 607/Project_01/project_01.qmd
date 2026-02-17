@@ -1,9 +1,11 @@
 ---
-title: "project_01"
+title: "project_1"
 format: html
 toc: true
-toc-depth: 4
+toc-depth: 5
+toc-location: left
 ---
+
 
 ## Approach
 
@@ -149,4 +151,89 @@ That should be it!
 
 ## Codebase
 
-**TODO**
+```{r}
+library(tidyverse)
+
+#start
+df_raw <- read_lines("tournamentinfo.txt")
+df_raw_t <- tibble(df_raw)
+var_1 <- c("pair", "name", "total_pts", paste0("opp_", 1:7))
+var_2 <- c("state", "match", "pre_rating", "post_rating")
+var_3 <- c("pair", "name", "state", "pre_rating", "post_rating", "total_pts", paste0("opp_", 1:7))
+var_4 <- c("name", "state", "pre_rating", "post_rating", "total_pts")
+
+#Working
+df <- tidyr::tibble(raw = df_raw) |>
+  filter(
+    !str_detect(raw, "^-"),
+    !str_detect(raw, "\\s*Pair"),
+    !str_detect(raw, "\\s*Num")
+  ) |>
+  mutate(index = row_number()) |>
+  mutate(
+    raw = str_trim(raw),
+    raw = str_replace(raw, "\\|$", ""),
+    raw = str_replace_all(raw, "\\|[BWLDXUHN]\\s*", "|"),
+    raw = str_replace_all(raw, "\\s*\\|\\s*", "|"),
+    raw = str_replace_all(raw, "\\|:\\d\\s*", "|"),
+    raw = str_replace_all(raw, "P\\d+", ""),
+    raw = str_replace(raw, "->", "|"),
+    raw = str_replace(raw, "R:", ""),
+    raw = str_replace(raw, "/", "|"),
+    raw = str_replace(raw, "\\|*\\|$", ""),
+    raw = str_trim(raw)
+    )
+
+df1 <- df |> filter(index %% 2 != 0) |>
+  separate(raw, sep = "\\|", into = var_1, extra = "drop", fill = "right") |>
+  mutate(across(everything(), str_trim)) |>
+  mutate(across(everything(), ~ na_if(.x, "")))
+
+df2 <- df |> filter(index %% 2 == 0) |>
+  mutate(index = index - 1) |>
+  separate(raw, sep = "\\|", into = var_2, extra = "drop", fill = "right") |>
+  mutate(across(everything(), str_trim)) |>
+  mutate(across(everything(), ~ na_if(.x, "")))
+
+player_df <- df1 |> left_join(df2, by ='index')|> 
+  select(all_of(var_3)) |>
+  readr::type_convert()
+
+rating_map <- setNames(player_df$pre_rating, player_df$pair)
+
+player_df <- player_df |>
+  mutate(across(starts_with("opp"), ~ unname(rating_map[.x]))) |>
+  mutate(op_avg_rating = rowMeans(pick(starts_with("opp")), na.rm = TRUE)) |>
+  select(-all_of(paste0("opp_", 1:7)))
+
+player_df
+glimpse(player_df)
+
+```
+---
+
+This was my workspace. I used this to check each str_replace and grep formula. 
+
+```{r}
+#| eval: false
+#| include: true
+
+rdf <- tibble(raw = df_raw)
+rdf <- rdf |> filter(!str_detect(raw, "^-"))
+rdf <- rdf |> filter(!str_detect(raw, "\\s*Pair"))
+rdf <- rdf |> filter(!str_detect(raw, "\\s*Num"))
+rdf <- rdf |> mutate(index = row_number())
+rdf <- rdf |> mutate(raw = str_trim(raw))
+rdf <- rdf |> mutate(raw = str_replace(raw, "\\|$", ""))
+rdf <- rdf |> mutate(raw = str_replace_all(raw, "\\|[BWLDXUHN]\\s*", "|"))
+rdf <- rdf |> mutate(raw = str_replace_all(raw, "\\s*\\|\\s*", "|"))
+rdf <- rdf |> mutate(raw = str_replace_all(raw, "\\|:\\d\\s*", "|"))
+rdf <- rdf |> mutate(raw = str_replace_all(raw, "P\\d+", ""))
+rdf <- rdf |> mutate(raw = str_replace(raw, "->", "|"))
+rdf <- rdf |> mutate(raw = str_replace(raw, "R:", ""))
+rdf <- rdf |> mutate(raw = str_replace(raw, "/", "|"))
+rdf <- rdf |> mutate(raw = str_replace(raw, "\\|*\\|$", ""))
+rdf <- rdf |> mutate(raw = str_trim(raw))
+```
+
+
