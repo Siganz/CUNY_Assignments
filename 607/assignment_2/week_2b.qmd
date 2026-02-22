@@ -8,11 +8,13 @@ toc-location: left
 ## Approach
 
 ### **Loading tidyverse**
+
 ```{r}
 library(tidyverse)
 ```
 
 ### **Viewing the data from github**
+
 ```{r}
 df_raw <- read.csv(
   'https://raw.githubusercontent.com/acatlin/data/refs/heads/master/penguin_predictions.csv'
@@ -22,17 +24,18 @@ glimpse(df_raw)
 ```
 
 ### **Fields**
-  - pred_female
-  - pred_class
-  - sex
 
+-   pred_female
+-   pred_class
+-   sex
 
 ### **Tasks**
-- **Null Error Rate**
-  - **'[M]ajority-class error rate.'**
-    - I had help from ChatGPT and it told me that the error rate = majority class % - total %.
-      - So, if sex = 100, 2 uniques (men/women), men = 55 & women = 45, the null error rate would be 45%. 
-    - Seems like a unique count for the sex field, then a division into percentage. 
+
+-   **Null Error Rate**
+    -   **'\[M\]ajority-class error rate.'**
+        -   I had help from ChatGPT and it told me that the error rate = majority class % - total %.
+            -   So, if sex = 100, 2 uniques (men/women), men = 55 & women = 45, the null error rate would be 45%.
+        -   Seems like a unique count for the sex field, then a division into percentage.
 
 ```{r}
 temp <- df_raw |>
@@ -41,44 +44,42 @@ temp <- df_raw |>
 temp
 
 ```
-  - **Create a plot showing distribution of sex**
-    - simple ggplot geom_bar
-  - **Explain why it's important to know null error rate**
-    - It defines the accuracy rate if the model just defaults to predicting the majority value. 
-    - Why is that important? I thought randomness would be 50% across the board, but that's not true unless the data is % 50 equal. 
-    So, this method takes the higher % of the data and says, if the prediction model can't achieve above that %, we can't determine
-    if it's actually predicting.
 
-  - **Confusion Matrices**
-    - *Using probability thresholds of 0.2, 0.5, and 0.8, compute:*
-      - **True Positives (TP)**
-        - Measures when the class is true and predicted is true.
-      - **True Negatives (TN)**
-        - Measures when the class is false and predicted is false.
-      - **False Positives (FP)**
-        - Measures when the class is false and predicted is true.
-      - **False Negatives (FN)**
-        - Measures when the class is true and predicted is false.
-  
-    - **Present results as three confusion matrices.**
-      - So, this would take the pred_female vs the actual.
-        - We then use the thresholds to calculate new columns with different n values.
-        - Then we use those new fields vs the actual for the confusion matrix.
+-   **Create a plot showing distribution of sex**
+    -   simple ggplot geom_bar
+-   **Explain why it's important to know null error rate**
+    -   It defines the accuracy rate if the model just defaults to predicting the majority value.
+    -   Why is that important? I thought randomness would be 50% across the board, but that's not true unless the data is % 50 equal. So, this method takes the higher % of the data and says, if the prediction model can't achieve above that %, we can't determine if it's actually predicting.
+-   **Confusion Matrices**
+    -   *Using probability thresholds of 0.2, 0.5, and 0.8, compute:*
+        -   **True Positives (TP)**
+            -   Measures when the class is true and predicted is true.
+        -   **True Negatives (TN)**
+            -   Measures when the class is false and predicted is false.
+        -   **False Positives (FP)**
+            -   Measures when the class is false and predicted is true.
+        -   **False Negatives (FN)**
+            -   Measures when the class is true and predicted is false.
+    -   **Present results as three confusion matrices.**
+        -   So, this would take the pred_female vs the actual.
+            -   We then use the thresholds to calculate new columns with different n values.
+            -   Then we use those new fields vs the actual for the confusion matrix.
 
 **You may compute these manually or use existing functions.**
-  
-  - **Performance Metrics**
-    - We can just use the values from the confusion matrices (?)
-  - **Threshold Use Cases**
-    - I guess we can analyze the data from the thresholds, determine the model accuracy, and think of reasons
-    why we would use a lower threshold vs a higher threshold.
+
+-   **Performance Metrics**
+    -   We can just use the values from the confusion matrices (?)
+-   **Threshold Use Cases**
+    -   I guess we can analyze the data from the thresholds, determine the model accuracy, and think of reasons why we would use a lower threshold vs a higher threshold.
 
 ## Code-base
+
 ```{r}
 glimpse(df_raw)
 ```
 
 ### Null Error Rate
+
 ```{r}
 df <- df_raw 
 df <- df |>
@@ -88,12 +89,14 @@ df
 ```
 
 #### **Calculate Null Error Rate**
+
 ```{r}
 null_error_rate <- min(df$n) / sum(df$n)
 sprintf("The null error rate is %.02f",(null_error_rate))
 ```
 
 #### **Plot distribution of class**
+
 ```{r}
 ggplot(df, aes(x = sex, y = n, fill = sex)) +
   geom_col() +
@@ -106,6 +109,7 @@ ggplot(df, aes(x = sex, y = n, fill = sex)) +
 ```
 
 #### **Why is null error rate important?**
+
 Null error rate is the chance the model has at being wrong if it only chooses the majority class. It's the baseline metric that the model needs to outperform in order to say that it's actually learning meaningful patterns to inform it's predictions rather than just choosing the majority class.
 
 ### Confusion Matrices & Performance Metrics
@@ -121,7 +125,8 @@ df <- df_raw |>
 glimpse(df)
 ```
 
-The calculation for the prediction should be: 
+The calculation for the prediction should be:
+
 ```{r}
 #| label: check
 threshold_prediction <- function(df_pred, threshold) {
@@ -145,7 +150,6 @@ threshold_prediction <- function(df_pred, threshold) {
 
 ```
 
-
 ```{r}
 #| label: check 2
 threshold = 1
@@ -153,44 +157,45 @@ threshold = 1
 p <- threshold_prediction(df, threshold)
 p
 ```
+
 The calculations for the performance metrics:
 
 **Accuracy**
 
-  - Proportion of correct predictions of all cases.
-  - Correct predictions / Total predictions
-    - (true_positive + true_negative) / sum(true_positive, false_positive, true_negative, false_negative)
-    - 100% Accuracy is also 1 - null error rate.
-  
+-   Proportion of correct predictions of all cases.
+-   Correct predictions / Total predictions
+    -   (true_positive + true_negative) / sum(true_positive, false_positive, true_negative, false_negative)
+    -   100% Accuracy is also 1 - null error rate.
+
 ```{r}
 accuracy <- function(tp, fp, tn, fn){(tp + tn) / (tp + fp + tn + fn)}
 ```
 
 **Precision**
 
-  - Proportion of correct positive prediction targets of all predicted positive targets. 
-  - True positive / True positive + False positive
+-   Proportion of correct positive prediction targets of all predicted positive targets.
+-   True positive / True positive + False positive
 
 ```{r}
 precision <- function(tp, fp){tp / (tp + fp)}
 ```
-  
+
 **Recall**
 
-  - Proportion of correct positive prediction targets of all actual positive targets.
-  - True positive / True positive + False negative
+-   Proportion of correct positive prediction targets of all actual positive targets.
+-   True positive / True positive + False negative
 
 ```{r}
 recall <- function(tp, fn){tp / (tp + fn)}
 ```
-  
+
 **F1 Score**
 
-  - *Harmonic mean* of precision and recall
-  - It's really an anti-cheat.
-    - You can be 100% correct in your predictions, but miss 90% of the actual targets. 
-    - You can get 100% of the actual targets, but be 90% wrong. 
-    
+-   *Harmonic mean* of precision and recall
+-   It's really an anti-cheat.
+    -   You can be 100% correct in your predictions, but miss 90% of the actual targets.
+    -   You can get 100% of the actual targets, but be 90% wrong.
+
 ```{r}
 f1  <- function(tp, fp, fn){
   p <- precision(tp, fp)
@@ -200,6 +205,7 @@ f1  <- function(tp, fp, fn){
 ```
 
 We can put those metrics into our original function
+
 ```{r}
 threshold_prediction <- function(df_pred, threshold) {
   
@@ -232,7 +238,8 @@ p <- threshold_prediction(df, threshold)
 p
 ```
 
-I asked ChatGPT to create a ggplot from the tibble because it seemed complicated. 
+I asked ChatGPT to create a ggplot from the tibble because it seemed complicated.
+
 ```{r}
 confusion_plot <- function(x) {
 
@@ -267,6 +274,7 @@ confusion_plot <- function(x) {
 ```
 
 To make it cleaner:
+
 ```{r}
 evaluate_threshold <- function(df, threshold) {
   m <- threshold_prediction(df, threshold)
@@ -277,19 +285,22 @@ evaluate_threshold <- function(df, threshold) {
 
 ```
 
-#### Threshold @ 0.2
+#### Threshold \@ 0.2
+
 ```{r}
 threshold <- 0.2
 evaluate_threshold(df, threshold)
 ```
 
-#### Threshold @ 0.5
+#### Threshold \@ 0.5
+
 ```{r}
 threshold <- 0.5
 evaluate_threshold(df, threshold)
 ```
 
-#### Threshold @ 0.8
+#### Threshold \@ 0.8
+
 ```{r}
 threshold <- 0.8
 evaluate_threshold(df, threshold)
@@ -298,28 +309,33 @@ evaluate_threshold(df, threshold)
 ### Threshold Use Cases
 
 #### 0.2 Threshold usecase
-When your prediction models cares less about precision and more about recall. This would be good for cancer screening, where you want to capture as many potential cases because missing even one patient would be costly. 
+
+When your prediction models cares less about precision and more about recall. This would be good for cancer screening, where you want to capture as many potential cases because missing even one patient would be costly.
 
 #### 0.8 Threshold usecase
+
 When your prediction models cares more about precision than recall. Using the cancer example, this would be good for experimental cancer treatments where the patient's must meet strict eligibility criteria and false positives would be costly.
 
 ### Conceptual Roadmap
 
 #### Binary Classification Basics
-Yeah, the threshold determines whether the prediction probability is rejected or not. 
+
+Yeah, the threshold determines whether the prediction probability is rejected or not.
 
 #### Baseline Thinking (Null Error Rate)
-It was kinda difficult to understand this, but it makes sense. If the model just chose the class with the majority, then it would
-have an error rate equal to the proportion that was not chosen. So, 70/100 are male, and the model only chose male, it would be 30% error rate. The model would have to outperform that % to be considered meaningful, even by a percentage point. 
 
-It also wouldn't be the inverse, because in that instance it would be a 70% error rate from picking the minority. However, that goes against the idea of baseline prediction performance, which is determined by a naive classifier, such as always predicting the most common class. I agree with that idea, because I'd do the same without any useful signals to weigh my predictions. 
+It was kinda difficult to understand this, but it makes sense. If the model just chose the class with the majority, then it would have an error rate equal to the proportion that was not chosen. So, 70/100 are male, and the model only chose male, it would be 30% error rate. The model would have to outperform that % to be considered meaningful, even by a percentage point.
 
-Also, if the minority class is the target for predictions, the error rate matters less because the metrics make up for it. 
+It also wouldn't be the inverse, because in that instance it would be a 70% error rate from picking the minority. However, that goes against the idea of baseline prediction performance, which is determined by a naive classifier, such as always predicting the most common class. I agree with that idea, because I'd do the same without any useful signals to weigh my predictions.
+
+Also, if the minority class is the target for predictions, the error rate matters less because the metrics make up for it.
 
 #### Confusion Matrix as Core Object
-I see that, the fundamentals inform metrics. 
+
+I see that, the fundamentals inform metrics.
 
 #### Threshold Tradeoffs
+
 Threshold depends on context, I agree. It's similar to the usecase of medical patients discussed in the *Threshold Use Cases* subsection.
 
 ### Practical Guidance
@@ -364,7 +380,8 @@ plot_df |>
   )
 
 ```
-The graph from the example seems fine. The only thing would be to convert the data labels to .2f. I just made a clean chart. It's simple. 
+
+The graph from the example seems fine. The only thing would be to convert the data labels to .2f. I just made a clean chart. It's simple.
 
 #### Understanding Probability vs Class
 
@@ -382,6 +399,7 @@ glimpse(df_extra)
 ```
 
 #### Build Confusion Matrices
+
 ```{r}
 df_confusion <- df_extra |>
   summarize(
@@ -394,6 +412,7 @@ glimpse(df_confusion)
 ```
 
 #### Drive Metrics
+
 ```{r}
 df_metrics <- df_confusion |>
   summarize(
