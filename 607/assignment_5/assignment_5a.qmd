@@ -8,6 +8,7 @@ toc-location: left
 
 ```{r}
 library(tidyverse)
+library(ggthemes)
 ```
 
 ## Approach
@@ -30,11 +31,12 @@ df
 I didn't read the instructions, says I need to create a csv, so I'll do that and then read it into R.
 
 ```{r}
-df <- read_csv("weird_table.csv")
+url <- "https://raw.githubusercontent.com/Siganz/CUNY_Assignments/9692d867a6a7bdf9bf986be51a0bbeab0a4f7ef5/607/assignment_5/weird_table.csv"
+df <- tibble(read_csv(url))
 df
 ```
 
-![weird table](weird_table.png)
+![weird table](https://raw.githubusercontent.com/Siganz/CUNY_Assignments/refs/heads/main/607/assignment_5/weird_table.png)
 
 *Submitted data file with at least some count analysis (+45)*
 Ok, so we can do a count of total flights, count of flights per location, counts of flights per airline. 
@@ -72,18 +74,100 @@ df2 <- df |>
   fill(airline, .direction = "down") |>
   pivot_longer(c("Los Angeles", "Phoenix", "San Diego", "San Francisco", "Seattle"), names_to = "city", values_to = "flights")
 
-# Answers # 1
+# Some quick stats
 glue::glue("Total flights:\n",sum(df2$flights))
 df2 |> group_by(airline, city) |> summarize(total_flights = sum(flights)) |> arrange(airline, city)
 
-# Answers # 2
-df <- read_csv("weird_table.csv")
-df
+df3 <- df2|>
+  group_by(airline, status) |>
+  summarize(flights = sum(flights, na.rm = TRUE), .groups = "drop") |>
+  group_by(airline) |>
+  mutate(total = sum(flights, na.rm = TRUE), perc = 100 * flights / total) |>
+  ungroup()
 
+df3
+df3 |> filter(status == "delayed")|> 
+  ggplot(aes(airline, perc, fill = airline)) + 
+  geom_col(width = 0.6) +
+  geom_text(aes(label = glue::glue("{round(perc, 2)}%")), position = position_nudge(y = 0.8)) +
+  labs(title = "Airline % Delayed",
+       x = "Airline",
+       y = "Percentage Total") +
+  theme_fivethirtyeight()
 
+df3 |> filter(status == "on time")|> 
+  ggplot(aes(airline, perc, fill = airline)) + 
+  geom_col(width = 0.6) +
+  geom_text(aes(label = glue::glue("{round(perc, 2)}%")), position = position_nudge(y = 3.5)) +
+  labs(title = "Airline % On Time",
+       x = "Airline",
+       y = "Percentage Total") +
+  theme_fivethirtyeight()
+```
+
+```{r}
+df4 <- df2|>
+  group_by(airline, status, city) |>
+  summarize(flights = sum(flights, na.rm = TRUE), .groups = "drop") |>
+  group_by(airline, city) |>
+  mutate(total = sum(flights, na.rm = TRUE), perc = 100 * flights / total) |>
+  ungroup()
+
+df5 <- df4 |>
+  filter(status == "delayed") |>
+  ggplot(aes(x = city, y = perc, fill = airline)) +
+  geom_col(width = 0.6) +
+  geom_text(aes(label = glue::glue("{round(perc, 2)}%")), size = 3, position = position_stack(vjust = 0.5)) +
+  labs(title = "Airline % Delayed per City",
+       x = "Airline",
+       y = "Percentage Total") +
+  scale_color_fivethirtyeight() +
+  theme_fivethirtyeight()
+
+df6 <- df4 |>
+  filter(status == "on time") |>
+  ggplot(aes(x = city, y = perc, fill = airline)) +
+  geom_col(width = 0.6) +
+  geom_text(aes(label = glue::glue("{round(perc, 2)}%")), size = 3, position = position_stack(vjust = 0.5)) +
+  labs(title = "Airline % On Time per City",
+       x = "Airline",
+       y = "Percentage Total") +
+  scale_color_fivethirtyeight() +
+  theme_fivethirtyeight()
 
 ```
 
 
 ```{r}
+df4 |>
+  filter(status == "delayed")
+df5
 ```
+Above shows the ggplot for delays as a percentage of the total flights per airline per city. Overall, seems that AM WEST has higher % of their flights being delayed when compared to Alaska. especially in San Francisco and Seattle. 
+
+```{r}
+df4 |>
+  filter(status == "on time")
+df6
+```
+In the ggplot above, we are looking at on time flights as a percentage of the total flights per city. Similar to the above, we can see that Alaska has a higher % of their flights being on time when compared to AM West. 
+
+```{r}
+df3 |>
+  select(airline, total) |>
+  group_by(airline) |>
+  summarize(airline_total = sum(total)/2) |>
+  ungroup() |>
+  mutate(total_flights = sum(airline_total), percentage = (airline_total/total_flights) * 100)
+
+df3 |> filter(status == "delayed")|> 
+  ggplot(aes(airline, perc, fill = airline)) + 
+  geom_col(width = 0.6) +
+  geom_text(aes(label = glue::glue("{round(perc, 2)}%")), position = position_nudge(y = 0.8)) +
+  labs(title = "Airline % Delayed",
+       x = "Airline",
+       y = "Percentage Total") +
+  theme_fivethirtyeight()
+
+```
+However, we should remember that AM WEST accounts for 65% of all total flights, with Alaska at 35%, so while Alaska performs better per city, AM WEST has a higher count of flights that are on time. 

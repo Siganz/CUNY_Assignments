@@ -10,20 +10,34 @@ toc-location: left
 
 ```{r}
 library(tidyverse)
-df <- read_csv("chess_player.csv")
+url <- "https://raw.githubusercontent.com/Siganz/CUNY_Assignments/refs/heads/main/607/assignment_5/chess_player.csv"
+df <- tibble(read_csv(url))
 df
 ```
-I kind of accidentally did the codebase prior to the approach. I was playing around with grabbing the code from Project 1 and then realized that if I wanted to calcualte ELO per game, I would need to alter the original code to extract the W/L/D from each of the games. So that meant modifying the str_replace formulas to place a | for every WLD. I have to check if people who skipped a game, would it matter or not (I don't think so?). 
+
+I realize that I won't be able to calculate the ELO correctly, unless I parsed the dataset to also include W/L/D/H/U... It wasn't clear whether or not we can approximate the ELO based off the avg rating of each opponent or not.
+
+I think I will just do it correctly, where we calculate ELO per match because it would be good practice, which means I have to redo the Project 1 grep equations. Then for each W/L/D/H/U we will have to assign a map to figure out how that will effect the scoring. 
+
+We will also use the ELO rating from the video by singingbanana: A = 1 / (1 + 10^((rating_B - rating_A) / 400))
+
+However, I wouldn't have to completely redo my project 1 code, as the most useful part is the mapping of opponent ID to their pre_rating scores per player row. Which I can make into a `pivot_longer()`, where each player will have 7 rows each (unless the opponent is missing / no match) calculate the expected ELO from the rating system, them sum everything up.  
+
+**Disclaimer:**
+I kind of accidentally did the codebase prior to the approach. I was playing around with grabbing the code from Project 1 and then just started to get to work. 
 
 Equation: 
-`expected = 1 / (1 + 10 ^ ((opp - pre_rating) / 400))`
-`diff = actual - expected`
+A = 1 / (1 + 10^((rating_B - rating_A) / 400))
+Difference would be expected vs result. 
+
+## Codebase
 
 ```{r}
 library(tidyverse)
 
 #start
-df_raw <- read_lines("tournamentinfo.txt")
+url <- "https://raw.githubusercontent.com/Siganz/CUNY_Assignments/refs/heads/main/607/assignment_5/tournamentinfo.txt"
+df_raw <- read_lines(url)
 df_raw_t <- tibble(df_raw)
 var_1 <- c("pair", "name", "total_pts", as.vector(rbind(paste0("dec_", 1:7), paste0("opp_", 1:7))))
 var_2 <- c("state", "match", "pre_rating", "post_rating")
@@ -92,5 +106,19 @@ top_underperformers <- results |> arrange(diff) |> slice_head(n = 5)
 
 top_overperformers
 top_underperformers
+```
+```{r}
+cat("Top Overperformers:\n\n")
+top_overperformers |>
+  mutate(report = glue::glue("{name} | {expected_score} | {actual_score} | {diff}")) |>
+  pull(report) |>
+  walk(~ cat(.x, "\n"))
+```
 
+```{r}
+cat("Top Underperformers:\n\n")
+top_underperformers |>
+  mutate(report = glue::glue("{name} | {expected_score} | {actual_score} | {diff}")) |>
+  pull(report) |>
+  walk(~ cat(.x, "\n"))
 ```
