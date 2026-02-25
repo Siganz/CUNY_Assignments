@@ -1,0 +1,12 @@
+---
+title: "project_02"
+format: html
+toc: true
+toc-depth: 3
+---
+
+```{r}
+library(tidyverse)
+df <- tibble(read_csv("data_01.csv"))
+df
+```

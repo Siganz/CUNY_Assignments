@@ -1,0 +1,181 @@
+RecordID,Participant,AgeGroup,Gender,City_State,ScreeningScores,Jan,Feb,Mar,Apr,May,TherapyType,Sessions,Medication,DiagnosisStatus,WorkHours,Sleep,StressScale,Insurance,SurveyDate,Notes
+1,Participant_1,unknown,F,"Phoenix, AZ","PHQ9:9,GAD7:0",NA,-,-,n/a,-,Group,18,,Undiagnosed,,missing,NA,Private,2024-03-12,missing
+2,Participant_2,unknown,n/a,"Houston, TX",PHQ-9=2;GAD-7=9,,missing,n/a,n/a,n/a,ACT,NA,SNRI,-,,NA,,-,2025-05-21,missing
+3,Participant_3,26-35,M,"Chicago, IL",PHQ-9=20;GAD-7=13,-,missing,n/a,-,,n/a,n/a,None,Pending,NA,missing,,Public,03-30-2024,
+4,Participant_4,36-45,Female,"Houston, TX",PHQ-9=24;GAD-7=13,n/a,n/a,NA,NA,missing,CBT,n/a,None,Undiagnosed,n/a,missing,,,2025-06-14,Follow-up needed
+5,Participant_5,36-45,Female,"New York, NY","PHQ9:9,GAD7:8",NA,,n/a,n/a,missing,Group,9,,-,36h,,10,Public,05/03/2025,Increase dosage
+6,Participant_6,18-25,Female,"Houston, TX","PHQ9:12,GAD7:15",missing,NA,,NA,NA,CBT,8,None,,n/a,NA,NA,Public,03/11/2025,
+7,Participant_7,18-25,Other,"New York, NY",PHQ-9=11;GAD-7=7,n/a,NA,NA,n/a,,CBT,n/a,SSRI,-,33 hours,8.7 hours,NA,-,04-17-2025,Increase dosage
+8,Participant_8,26-35,Female,"Chicago, IL","PHQ9:10,GAD7:5",140,119,111,-,missing,None,NA,SSRI,,57h,7.8h,7,n/a,2025-02-03,
+9,Participant_9,26-35,F,"Houston, TX",PHQ-9=5;GAD-7=5,missing,n/a,n/a,NA,missing,ACT,n/a,Mood Stabilizer,,NA,,2,None,2024-04-05,Patient stable
+10,Participant_10,60+,M,"Houston, TX",PHQ-9=11;GAD-7=14,missing,n/a,,NA,missing,None,NA,SSRI,,55 hours,5.6 hours,3,Private,11-19-2023,Patient stable
+11,Participant_11,26-35,Male,"Chicago, IL",PHQ-9=3;GAD-7=13,,-,missing,NA,n/a,CBT,NA,Mood Stabilizer,-,,missing,n/a,,07-31-2023,
+12,Participant_12,60+,F,"Chicago, IL","PHQ9:8,GAD7:2",80,NA,99,-,missing,CBT,7,Benzodiazepine,Diagnosed,28 hours,NA,n/a,None,2024-05-28,
+13,Participant_13,18-25,Male,"Chicago, IL",PHQ-9=12;GAD-7=6,missing,,-,-,,None,n/a,SSRI,Pending,n/a,NA,,,02/12/2024,missing
+14,Participant_14,unknown,F,"Houston, TX","PHQ9:6,GAD7:13",missing,,n/a,n/a,,Group,11,SNRI,Pending,NA,8.0 hours,3,None,02/09/2024,missing
+15,Participant_15,46-60,Other,"Chicago, IL",PHQ-9=22;GAD-7=3,n/a,130,missing,105,NA,Group,NA,Mood Stabilizer,,56h,NA,4,Private,2025-03-20,
+16,Participant_16,unknown,Female,"Houston, TX",PHQ-9=21;GAD-7=14,NA,-,-,-,,n/a,n/a,SSRI,,44 hours,missing,5,Private,09-26-2025,Follow-up needed
+17,Participant_17,26-35,F,"Chicago, IL","PHQ9:11,GAD7:19",,missing,-,n/a,n/a,None,9,Benzodiazepine,Diagnosed,n/a,,NA,Public,01-16-2026,Increase dosage
+18,Participant_18,36-45,Other,"Houston, TX","PHQ9:2,GAD7:19",-,,,131,missing,CBT,9,,-,n/a,8.8h,1,n/a,10-01-2023,missing
+19,Participant_19,60+,Female,"New York, NY","PHQ9:10,GAD7:7",-,n/a,missing,n/a,NA,ACT,9,SSRI,-,42 hours,7.7 hours,NA,Public,2023-06-07,Follow-up needed
+20,Participant_20,46-60,Male,"Chicago, IL",PHQ-9=4;GAD-7=20,99,NA,,n/a,missing,ACT,18,None,,n/a,,NA,None,12/04/2024,
+21,Participant_21,60+,Male,"New York, NY","PHQ9:19,GAD7:9",missing,-,missing,NA,n/a,CBT,NA,SSRI,Pending,n/a,8.8 hours,4,-,25/10/2024,Follow-up needed
+22,Participant_22,unknown,M,"Miami, FL",PHQ-9=11;GAD-7=15,,-,,-,missing,CBT,5,SNRI,,32h,,9,n/a,2026-01-13,Patient stable
+23,Participant_23,46-60,M,"New York, NY",PHQ-9=4;GAD-7=0,n/a,NA,,107,n/a,n/a,NA,SSRI,Pending,n/a,5.7h,n/a,-,02-08-2024,Increase dosage
+24,Participant_24,18-25,M,"New York, NY","PHQ9:16,GAD7:9",missing,n/a,NA,82,missing,CBT,,SSRI,,NA,6.9 hours,,n/a,2023-07-14,
+25,Participant_25,60+,Other,"Houston, TX",PHQ-9=7;GAD-7=7,n/a,NA,123,NA,,DBT,n/a,SNRI,Diagnosed,52 hours,NA,7,-,01-26-2026,Patient stable
+26,Participant_26,36-45,Female,"Chicago, IL","PHQ9:25,GAD7:17",n/a,NA,n/a,-,n/a,n/a,NA,Mood Stabilizer,Pending,NA,missing,,Private,07-15-2024,missing
+27,Participant_27,unknown,F,"Houston, TX",PHQ-9=15;GAD-7=3,-,112,NA,,137,ACT,NA,SSRI,Undiagnosed,n/a,NA,3,-,11-22-2024,Follow-up needed
+28,Participant_28,60+,Female,"Phoenix, AZ",PHQ-9=20;GAD-7=19,NA,94,-,-,missing,Group,NA,SSRI,,,,,,07-12-2024,missing
+29,Participant_29,26-35,n/a,"Phoenix, AZ",PHQ-9=24;GAD-7=7,-,n/a,n/a,,n/a,DBT,NA,,Pending,NA,,5,Public,17/10/2024,
+30,Participant_30,unknown,Female,"Chicago, IL","PHQ9:5,GAD7:1",NA,,NA,NA,n/a,Group,NA,None,-,23 hours,,NA,Private,06/02/2025,Increase dosage
+31,Participant_31,60+,n/a,"Houston, TX","PHQ9:25,GAD7:15",n/a,,n/a,missing,-,Group,8,Mood Stabilizer,Diagnosed,22h,missing,,,01-12-2024,missing
+32,Participant_32,unknown,n/a,"Houston, TX",PHQ-9=4;GAD-7=6,,-,,,,ACT,,,,NA,7.2 hours,4,,12-28-2025,Patient stable
+33,Participant_33,46-60,n/a,"Phoenix, AZ","PHQ9:1,GAD7:4",n/a,n/a,,105,n/a,None,17,,Diagnosed,,5.5 hours,n/a,Public,11-07-2025,Increase dosage
+34,Participant_34,18-25,Male,"Phoenix, AZ",PHQ-9=23;GAD-7=6,111,missing,n/a,97,,Group,n/a,Mood Stabilizer,Undiagnosed,NA,missing,NA,None,2023-07-16,missing
+35,Participant_35,26-35,M,"Phoenix, AZ","PHQ9:23,GAD7:2",n/a,-,,-,,n/a,,Mood Stabilizer,Undiagnosed,n/a,NA,,,25/03/2025,
+36,Participant_36,60+,Other,"Miami, FL","PHQ9:19,GAD7:16",105,92,94,,,ACT,NA,Benzodiazepine,,29 hours,NA,10,n/a,15/05/2024,Increase dosage
+37,Participant_37,60+,Female,"Chicago, IL","PHQ9:14,GAD7:14",n/a,-,missing,129,missing,DBT,10,None,Undiagnosed,NA,missing,n/a,Public,05-02-2025,missing
+38,Participant_38,unknown,Male,"Houston, TX","PHQ9:16,GAD7:14",105,128,,-,,None,10,,Undiagnosed,NA,NA,,Public,03-10-2025,Follow-up needed
+39,Participant_39,36-45,Female,"Miami, FL","PHQ9:1,GAD7:21",NA,missing,NA,,-,None,NA,,,,,n/a,Private,25/03/2024,Follow-up needed
+40,Participant_40,60+,M,"Phoenix, AZ","PHQ9:17,GAD7:1",-,missing,-,n/a,105,n/a,n/a,None,Pending,n/a,,NA,-,05-03-2024,
+41,Participant_41,26-35,Other,"Phoenix, AZ","PHQ9:4,GAD7:21",132,missing,n/a,,NA,None,15,None,Pending,58h,8.9h,n/a,,01-15-2025,missing
+42,Participant_42,46-60,Other,"Miami, FL","PHQ9:23,GAD7:8",missing,n/a,-,n/a,,ACT,NA,SNRI,-,n/a,missing,3,Public,2025-12-09,missing
+43,Participant_43,18-25,Other,"Chicago, IL",PHQ-9=1;GAD-7=7,n/a,120,121,n/a,missing,ACT,n/a,Mood Stabilizer,Diagnosed,59 hours,6.3h,7,n/a,2024-06-16,Patient stable
+44,Participant_44,60+,n/a,"Miami, FL","PHQ9:12,GAD7:5",n/a,-,97,-,133,DBT,n/a,SNRI,Diagnosed,n/a,8.9h,,n/a,12-22-2023,
+45,Participant_45,36-45,Other,"Chicago, IL","PHQ9:21,GAD7:6",NA,NA,-,,NA,DBT,NA,None,Undiagnosed,n/a,5.1h,NA,Private,10-24-2024,Follow-up needed
+46,Participant_46,46-60,Male,"Phoenix, AZ",PHQ-9=13;GAD-7=6,NA,missing,NA,140,-,DBT,12,SNRI,Diagnosed,NA,,6,n/a,09-17-2023,Follow-up needed
+47,Participant_47,36-45,Other,"Houston, TX","PHQ9:20,GAD7:2",130,108,-,,n/a,CBT,,SNRI,Pending,35h,7.7h,,,2023-08-21,Patient stable
+48,Participant_48,unknown,Other,"New York, NY",PHQ-9=7;GAD-7=17,102,-,128,n/a,120,None,5,SSRI,-,NA,7.4 hours,10,,2024-06-26,
+49,Participant_49,46-60,M,"Houston, TX",PHQ-9=26;GAD-7=2,missing,n/a,NA,-,,CBT,,,Undiagnosed,NA,missing,NA,,07-22-2024,Increase dosage
+50,Participant_50,60+,Other,"Chicago, IL",PHQ-9=4;GAD-7=4,,n/a,82,,n/a,None,12,,Pending,n/a,5.1 hours,n/a,,28/02/2025,Increase dosage
+51,Participant_51,18-25,Female,"Chicago, IL","PHQ9:8,GAD7:12",-,NA,,,,None,NA,,,,missing,NA,-,12/08/2024,Increase dosage
+52,Participant_52,60+,n/a,"New York, NY",PHQ-9=7;GAD-7=8,,n/a,n/a,NA,112,CBT,,SNRI,Pending,29h,NA,NA,n/a,10/10/2024,missing
+53,Participant_53,26-35,Other,"Houston, TX",PHQ-9=6;GAD-7=9,115,-,NA,NA,,DBT,,,-,NA,NA,5,n/a,31/10/2024,Patient stable
+54,Participant_54,26-35,F,"Chicago, IL","PHQ9:22,GAD7:15",,NA,n/a,,missing,CBT,NA,SNRI,Undiagnosed,,NA,,None,30/08/2024,Follow-up needed
+55,Participant_55,18-25,M,"Houston, TX","PHQ9:14,GAD7:0",138,n/a,-,127,missing,ACT,n/a,Benzodiazepine,Pending,53h,,n/a,,25/04/2024,Patient stable
+56,Participant_56,18-25,M,"New York, NY",PHQ-9=26;GAD-7=10,123,,101,-,103,None,NA,SSRI,Diagnosed,28h,NA,n/a,,06-29-2024,Patient stable
+57,Participant_57,18-25,F,"Chicago, IL",PHQ-9=24;GAD-7=10,NA,110,missing,NA,n/a,CBT,n/a,Mood Stabilizer,,45h,NA,8,Public,03/12/2023,Increase dosage
+58,Participant_58,unknown,Other,"New York, NY","PHQ9:14,GAD7:14",-,missing,missing,,-,None,,Benzodiazepine,,50h,NA,7,Public,20/08/2023,Patient stable
+59,Participant_59,46-60,Other,"Miami, FL","PHQ9:11,GAD7:7",missing,missing,140,,110,Group,n/a,SNRI,Undiagnosed,,6.2h,n/a,-,11-20-2024,Increase dosage
+60,Participant_60,unknown,Female,"Chicago, IL",PHQ-9=19;GAD-7=4,NA,83,NA,n/a,NA,Group,NA,SSRI,-,43 hours,,6,-,27/03/2025,
+61,Participant_61,60+,n/a,"Chicago, IL",PHQ-9=9;GAD-7=11,NA,132,107,111,138,DBT,12,SSRI,Undiagnosed,,6.8 hours,n/a,None,2025-03-12,Patient stable
+62,Participant_62,60+,Female,"New York, NY","PHQ9:8,GAD7:14",NA,n/a,n/a,,n/a,n/a,11,Benzodiazepine,Diagnosed,NA,8.8h,NA,Public,2023-06-09,
+63,Participant_63,36-45,M,"Houston, TX","PHQ9:16,GAD7:5",n/a,92,83,missing,127,DBT,,None,,n/a,NA,,,27/08/2023,Follow-up needed
+64,Participant_64,26-35,Other,"New York, NY",PHQ-9=17;GAD-7=19,,,137,NA,n/a,CBT,n/a,Benzodiazepine,Undiagnosed,NA,5.9h,3,n/a,2023-06-25,Follow-up needed
+65,Participant_65,unknown,Other,"New York, NY",PHQ-9=3;GAD-7=18,n/a,missing,n/a,,n/a,ACT,,None,Pending,22h,NA,NA,Private,09-19-2025,Patient stable
+66,Participant_66,60+,F,"Houston, TX",PHQ-9=7;GAD-7=6,n/a,,103,NA,n/a,ACT,,SNRI,Diagnosed,n/a,,6,Private,04-23-2025,Increase dosage
+67,Participant_67,26-35,M,"Houston, TX","PHQ9:21,GAD7:8",,105,NA,95,,Group,,,Undiagnosed,,6.3h,4,None,18/09/2024,
+68,Participant_68,60+,n/a,"Chicago, IL",PHQ-9=8;GAD-7=4,,NA,n/a,n/a,NA,n/a,NA,,Diagnosed,NA,NA,,Public,2024-06-23,missing
+69,Participant_69,18-25,F,"Miami, FL",PHQ-9=15;GAD-7=20,82,n/a,NA,,missing,DBT,12,None,-,54h,8.2 hours,NA,Public,2023-12-13,Follow-up needed
+70,Participant_70,36-45,F,"Chicago, IL",PHQ-9=27;GAD-7=13,missing,-,,NA,missing,DBT,NA,SNRI,Undiagnosed,29 hours,missing,,None,08-05-2025,Follow-up needed
+71,Participant_71,46-60,F,"New York, NY",PHQ-9=8;GAD-7=12,n/a,n/a,n/a,87,n/a,CBT,NA,Benzodiazepine,Diagnosed,50 hours,8.9h,NA,Private,2025-01-09,Follow-up needed
+72,Participant_72,26-35,M,"Houston, TX","PHQ9:4,GAD7:2",NA,-,missing,NA,,CBT,n/a,None,Undiagnosed,NA,NA,,Public,20/07/2025,Patient stable
+73,Participant_73,unknown,Female,"Phoenix, AZ","PHQ9:27,GAD7:21",-,n/a,,n/a,n/a,n/a,11,None,Pending,,5.8h,n/a,Public,05-10-2024,
+74,Participant_74,36-45,n/a,"Phoenix, AZ","PHQ9:25,GAD7:9",,,n/a,missing,n/a,None,NA,,,45h,5.6 hours,9,-,08-22-2023,missing
+75,Participant_75,26-35,n/a,"Chicago, IL","PHQ9:22,GAD7:20",,,n/a,missing,NA,Group,,SNRI,Undiagnosed,NA,,,-,2024-07-09,
+76,Participant_76,60+,Male,"Phoenix, AZ",PHQ-9=11;GAD-7=2,,n/a,,NA,NA,ACT,14,Benzodiazepine,Pending,,NA,n/a,n/a,2025-06-03,Patient stable
+77,Participant_77,46-60,Other,"New York, NY","PHQ9:10,GAD7:20",,,missing,122,-,CBT,,None,Pending,58 hours,8.8h,4,n/a,29/09/2023,
+78,Participant_78,unknown,F,"Houston, TX","PHQ9:19,GAD7:10",,-,-,-,missing,CBT,,None,,n/a,8.6 hours,n/a,n/a,2023-12-18,Increase dosage
+79,Participant_79,18-25,Male,"Phoenix, AZ","PHQ9:0,GAD7:9",NA,missing,NA,,120,CBT,7,,-,39 hours,6.6h,n/a,None,09-09-2024,Follow-up needed
+80,Participant_80,36-45,Other,"Miami, FL","PHQ9:3,GAD7:21",n/a,n/a,n/a,NA,missing,None,n/a,Benzodiazepine,,37h,NA,NA,Private,2024-10-17,
+81,Participant_81,36-45,Other,"Houston, TX",PHQ-9=2;GAD-7=12,115,-,,n/a,134,DBT,,SSRI,Diagnosed,n/a,NA,,,2025-06-15,missing
+82,Participant_82,18-25,Male,"Miami, FL","PHQ9:26,GAD7:15",n/a,-,88,NA,NA,None,n/a,SSRI,Undiagnosed,57 hours,8.7h,n/a,Private,2024-07-21,Increase dosage
+83,Participant_83,36-45,n/a,"Miami, FL","PHQ9:0,GAD7:14",missing,102,82,n/a,100,CBT,16,SSRI,Undiagnosed,n/a,6.1h,,-,01-18-2026,Increase dosage
+84,Participant_84,26-35,F,"Chicago, IL",PHQ-9=5;GAD-7=1,NA,83,NA,-,NA,None,NA,Mood Stabilizer,-,n/a,8.2 hours,NA,Private,2024-03-29,missing
+85,Participant_85,26-35,Female,"New York, NY",PHQ-9=4;GAD-7=12,NA,NA,NA,-,113,Group,,SSRI,-,,NA,n/a,Public,01-30-2024,Follow-up needed
+86,Participant_86,unknown,M,"Houston, TX",PHQ-9=0;GAD-7=3,NA,NA,missing,n/a,NA,DBT,,,-,23h,NA,5,-,06-14-2025,missing
+87,Participant_87,60+,M,"Houston, TX",PHQ-9=8;GAD-7=1,,n/a,-,,-,CBT,NA,None,-,47h,5.2h,n/a,Public,2024-01-07,Follow-up needed
+88,Participant_88,unknown,M,"Phoenix, AZ",PHQ-9=26;GAD-7=1,115,missing,-,NA,n/a,DBT,n/a,None,Pending,NA,8.3h,n/a,Public,06/10/2025,
+89,Participant_89,36-45,F,"New York, NY",PHQ-9=14;GAD-7=9,-,-,99,n/a,,Group,n/a,None,,,NA,NA,None,29/09/2023,Follow-up needed
+90,Participant_90,60+,n/a,"Houston, TX",PHQ-9=24;GAD-7=17,n/a,-,-,122,NA,ACT,n/a,,,NA,6.8h,6,n/a,2025-09-10,Patient stable
+91,Participant_91,36-45,Male,"Chicago, IL",PHQ-9=2;GAD-7=15,n/a,missing,NA,,114,DBT,n/a,Benzodiazepine,Undiagnosed,n/a,missing,,n/a,01-25-2026,
+92,Participant_92,unknown,F,"Chicago, IL","PHQ9:17,GAD7:4",,-,NA,NA,-,n/a,11,SSRI,Diagnosed,22 hours,5.2h,8,None,14/07/2025,Patient stable
+93,Participant_93,60+,Male,"Houston, TX","PHQ9:13,GAD7:20",-,,-,missing,86,Group,n/a,SSRI,-,n/a,8.6 hours,n/a,-,2024-10-22,Increase dosage
+94,Participant_94,60+,Female,"Chicago, IL","PHQ9:21,GAD7:14",NA,,NA,missing,,ACT,8,SNRI,Diagnosed,NA,7.1 hours,,Private,2023-06-27,
+95,Participant_95,unknown,Female,"Chicago, IL","PHQ9:25,GAD7:20",n/a,,,NA,NA,ACT,NA,Mood Stabilizer,Pending,,6.2h,1,,2025-06-07,Increase dosage
+96,Participant_96,26-35,Male,"Houston, TX",PHQ-9=11;GAD-7=1,-,n/a,missing,-,125,Group,7,Benzodiazepine,-,43h,8.0 hours,n/a,,10/05/2025,Patient stable
+97,Participant_97,unknown,Other,"Miami, FL",PHQ-9=1;GAD-7=6,,NA,n/a,missing,,ACT,,Benzodiazepine,-,55 hours,NA,,Public,26/12/2024,
+98,Participant_98,unknown,Other,"Miami, FL","PHQ9:17,GAD7:0",-,n/a,n/a,NA,,DBT,7,Mood Stabilizer,Pending,NA,8.6 hours,,n/a,2023-06-08,
+99,Participant_99,26-35,M,"Chicago, IL","PHQ9:22,GAD7:6",-,NA,104,90,-,Group,15,SNRI,Undiagnosed,n/a,,10,Public,01/08/2024,
+100,Participant_100,36-45,Other,"Miami, FL","PHQ9:1,GAD7:3",NA,83,-,-,missing,CBT,n/a,,,NA,NA,n/a,-,08-17-2023,
+101,Participant_101,36-45,Other,"Chicago, IL","PHQ9:8,GAD7:0",missing,missing,missing,120,n/a,DBT,15,None,,,,1,,08-10-2024,Patient stable
+102,Participant_102,18-25,n/a,"New York, NY","PHQ9:23,GAD7:2",,NA,82,109,NA,DBT,NA,Benzodiazepine,Diagnosed,n/a,NA,NA,Private,2025-06-14,missing
+103,Participant_103,46-60,F,"Miami, FL","PHQ9:27,GAD7:10",,missing,-,-,missing,DBT,n/a,Mood Stabilizer,,NA,missing,NA,Public,06-04-2025,
+104,Participant_104,46-60,Other,"New York, NY","PHQ9:16,GAD7:13",,,90,NA,missing,ACT,n/a,SSRI,Undiagnosed,56h,7.8h,n/a,n/a,2025-01-11,Follow-up needed
+105,Participant_105,unknown,n/a,"Chicago, IL",PHQ-9=23;GAD-7=10,,n/a,missing,128,missing,ACT,NA,,Pending,n/a,missing,n/a,None,2025-06-25,
+106,Participant_106,unknown,Female,"Chicago, IL",PHQ-9=3;GAD-7=20,n/a,136,-,missing,-,None,,,Pending,30h,6.4h,n/a,Public,2024-01-30,missing
+107,Participant_107,36-45,Female,"Miami, FL","PHQ9:21,GAD7:6",missing,,NA,,91,DBT,NA,SNRI,Diagnosed,,NA,NA,-,30/07/2023,Follow-up needed
+108,Participant_108,46-60,Male,"Houston, TX",PHQ-9=2;GAD-7=3,,missing,n/a,,NA,Group,NA,None,-,n/a,NA,NA,Private,2024-09-21,Increase dosage
+109,Participant_109,unknown,F,"New York, NY",PHQ-9=7;GAD-7=16,NA,n/a,-,136,NA,None,n/a,Mood Stabilizer,Pending,n/a,6.0h,n/a,,2025-07-17,missing
+110,Participant_110,36-45,F,"Phoenix, AZ","PHQ9:24,GAD7:15",-,NA,NA,NA,NA,ACT,,Benzodiazepine,Undiagnosed,35 hours,8.4h,,,06-17-2025,Patient stable
+111,Participant_111,18-25,Male,"Chicago, IL","PHQ9:26,GAD7:13",NA,,missing,134,-,Group,n/a,,Undiagnosed,n/a,5.0 hours,,Private,16/08/2023,
+112,Participant_112,unknown,Male,"Miami, FL",PHQ-9=26;GAD-7=19,,122,,NA,-,DBT,,None,Diagnosed,22h,,2,,15/11/2025,Patient stable
+113,Participant_113,unknown,F,"New York, NY",PHQ-9=16;GAD-7=18,NA,n/a,NA,NA,NA,n/a,7,SNRI,Pending,n/a,missing,n/a,n/a,2024-01-15,Follow-up needed
+114,Participant_114,18-25,n/a,"New York, NY","PHQ9:18,GAD7:3",,n/a,-,n/a,NA,None,18,Benzodiazepine,Undiagnosed,33 hours,8.1 hours,NA,Private,20/06/2023,Follow-up needed
+115,Participant_115,36-45,M,"Miami, FL","PHQ9:5,GAD7:5",n/a,NA,n/a,114,,CBT,NA,,,58 hours,9.0 hours,,None,03-05-2025,missing
+116,Participant_116,46-60,Male,"Miami, FL","PHQ9:24,GAD7:12",87,n/a,-,missing,missing,None,n/a,,Pending,n/a,5.6 hours,n/a,Public,11/11/2024,
+117,Participant_117,18-25,Female,"Miami, FL","PHQ9:2,GAD7:12",NA,n/a,n/a,NA,120,Group,n/a,SNRI,Undiagnosed,28h,6.2 hours,NA,n/a,08-09-2024,Follow-up needed
+118,Participant_118,unknown,F,"New York, NY","PHQ9:2,GAD7:11",n/a,91,96,-,-,ACT,n/a,None,,NA,6.7h,6,-,2024-04-19,missing
+119,Participant_119,36-45,Male,"New York, NY","PHQ9:17,GAD7:10",,NA,missing,NA,missing,CBT,17,SNRI,Undiagnosed,26h,missing,n/a,None,13/12/2024,Increase dosage
+120,Participant_120,46-60,Other,"Chicago, IL",PHQ-9=1;GAD-7=4,n/a,-,n/a,NA,,None,NA,Mood Stabilizer,Undiagnosed,29h,NA,,-,2025-03-02,
+121,Participant_121,18-25,Female,"New York, NY",PHQ-9=10;GAD-7=6,NA,-,110,n/a,-,Group,,None,,35h,5.4 hours,2,Private,04/06/2023,missing
+122,Participant_122,60+,Other,"New York, NY",PHQ-9=8;GAD-7=14,-,-,117,NA,,None,NA,,-,NA,NA,NA,Public,06/01/2026,Patient stable
+123,Participant_123,18-25,Other,"Phoenix, AZ","PHQ9:26,GAD7:7",missing,NA,,120,-,DBT,NA,None,Pending,NA,8.7 hours,8,n/a,07-25-2023,missing
+124,Participant_124,60+,Female,"Chicago, IL","PHQ9:20,GAD7:20",-,n/a,n/a,NA,n/a,Group,13,Benzodiazepine,Pending,28h,6.3h,,None,2025-12-17,Increase dosage
+125,Participant_125,36-45,Male,"Miami, FL","PHQ9:20,GAD7:20",NA,missing,NA,missing,n/a,DBT,,SSRI,-,,NA,,Public,2024-07-07,Patient stable
+126,Participant_126,26-35,M,"Chicago, IL",PHQ-9=11;GAD-7=10,missing,106,missing,-,-,CBT,11,Mood Stabilizer,Pending,50h,,,None,08/09/2024,missing
+127,Participant_127,unknown,Female,"Houston, TX",PHQ-9=2;GAD-7=20,NA,n/a,-,,140,DBT,,Mood Stabilizer,,29h,,n/a,None,02-13-2024,Patient stable
+128,Participant_128,46-60,M,"Chicago, IL","PHQ9:19,GAD7:4",NA,94,missing,,117,n/a,,None,-,n/a,NA,n/a,n/a,06-06-2024,Follow-up needed
+129,Participant_129,60+,Female,"New York, NY","PHQ9:22,GAD7:4",n/a,NA,,n/a,missing,CBT,16,SSRI,Pending,40 hours,,8,Private,2024-06-30,Follow-up needed
+130,Participant_130,36-45,Female,"Houston, TX","PHQ9:20,GAD7:6",-,-,missing,n/a,,None,n/a,Mood Stabilizer,Undiagnosed,n/a,NA,7,,2024-08-24,Increase dosage
+131,Participant_131,60+,M,"Houston, TX","PHQ9:10,GAD7:9",NA,,-,-,-,None,n/a,SNRI,Undiagnosed,NA,missing,,,2025-10-17,
+132,Participant_132,36-45,F,"Miami, FL",PHQ-9=15;GAD-7=21,110,n/a,125,139,-,ACT,NA,Mood Stabilizer,Pending,NA,7.9 hours,NA,n/a,2024-08-09,Follow-up needed
+133,Participant_133,60+,n/a,"Houston, TX","PHQ9:16,GAD7:10",NA,134,130,-,,n/a,NA,,Undiagnosed,40 hours,5.1 hours,n/a,Private,29/08/2024,Patient stable
+134,Participant_134,unknown,Female,"Miami, FL","PHQ9:9,GAD7:13",n/a,133,NA,-,-,None,n/a,None,-,,missing,,None,03-09-2025,Patient stable
+135,Participant_135,46-60,F,"Phoenix, AZ","PHQ9:1,GAD7:16",-,NA,n/a,,n/a,n/a,14,Benzodiazepine,-,43 hours,missing,n/a,Private,01-18-2024,Patient stable
+136,Participant_136,18-25,M,"Phoenix, AZ","PHQ9:1,GAD7:11",n/a,-,NA,n/a,NA,None,12,Mood Stabilizer,Undiagnosed,43 hours,6.9 hours,n/a,-,15/09/2023,Patient stable
+137,Participant_137,18-25,n/a,"Chicago, IL",PHQ-9=0;GAD-7=16,110,,,n/a,missing,CBT,NA,None,,,8.2 hours,2,,22/02/2026,Follow-up needed
+138,Participant_138,unknown,Female,"Houston, TX",PHQ-9=3;GAD-7=3,n/a,NA,-,108,missing,None,,SNRI,,47 hours,,,-,02-16-2024,Patient stable
+139,Participant_139,26-35,F,"Houston, TX","PHQ9:4,GAD7:2",,120,n/a,n/a,NA,None,,SSRI,Undiagnosed,25 hours,missing,,n/a,25/09/2024,
+140,Participant_140,60+,Female,"Chicago, IL",PHQ-9=17;GAD-7=16,-,NA,NA,missing,,n/a,n/a,Mood Stabilizer,,,NA,1,n/a,01/02/2026,Patient stable
+141,Participant_141,46-60,Other,"Houston, TX",PHQ-9=4;GAD-7=21,missing,84,-,-,-,DBT,n/a,Benzodiazepine,Undiagnosed,NA,NA,,None,07-12-2025,
+142,Participant_142,26-35,M,"Miami, FL",PHQ-9=20;GAD-7=4,,missing,missing,,131,ACT,NA,Benzodiazepine,-,NA,,NA,Private,2026-01-25,
+143,Participant_143,26-35,Female,"Miami, FL",PHQ-9=9;GAD-7=16,n/a,n/a,missing,missing,130,CBT,NA,Mood Stabilizer,Pending,NA,7.4 hours,,,09-19-2024,
+144,Participant_144,unknown,Other,"Houston, TX","PHQ9:4,GAD7:10",NA,missing,missing,missing,missing,DBT,NA,SNRI,Pending,n/a,NA,n/a,n/a,22/02/2025,Patient stable
+145,Participant_145,60+,F,"Phoenix, AZ",PHQ-9=3;GAD-7=17,-,84,,92,missing,n/a,,SNRI,,n/a,,,,2025-12-26,Follow-up needed
+146,Participant_146,unknown,Female,"Miami, FL",PHQ-9=19;GAD-7=15,missing,103,99,missing,,n/a,,,Diagnosed,,6.8h,NA,Public,15/08/2025,Patient stable
+147,Participant_147,26-35,Other,"Phoenix, AZ",PHQ-9=11;GAD-7=19,,134,missing,n/a,114,CBT,16,Mood Stabilizer,,NA,,6,,15/01/2025,
+148,Participant_148,unknown,n/a,"New York, NY",PHQ-9=15;GAD-7=14,-,93,NA,,missing,n/a,n/a,,Undiagnosed,,7.5h,7,n/a,2023-08-28,missing
+149,Participant_149,36-45,Female,"Chicago, IL",PHQ-9=12;GAD-7=6,n/a,,n/a,NA,105,n/a,NA,SNRI,Pending,,missing,n/a,Public,2025-07-14,Increase dosage
+150,Participant_150,46-60,Male,"Chicago, IL",PHQ-9=11;GAD-7=21,n/a,80,115,-,missing,Group,n/a,None,,46 hours,7.1 hours,NA,-,07-04-2025,Follow-up needed
+151,Participant_151,18-25,Other,"Phoenix, AZ","PHQ9:9,GAD7:5",NA,107,,-,missing,None,n/a,Benzodiazepine,,,,3,n/a,22/07/2024,Patient stable
+152,Participant_152,36-45,Other,"Chicago, IL",PHQ-9=11;GAD-7=15,117,112,-,117,missing,ACT,NA,,,n/a,NA,,Private,2024-09-27,Increase dosage
+153,Participant_153,46-60,n/a,"New York, NY",PHQ-9=17;GAD-7=15,,,121,-,-,Group,,Benzodiazepine,Diagnosed,35 hours,,,None,10-10-2025,Increase dosage
+154,Participant_154,unknown,M,"Miami, FL","PHQ9:9,GAD7:21",missing,missing,131,-,missing,n/a,NA,Mood Stabilizer,Pending,,missing,NA,n/a,19/11/2024,missing
+155,Participant_155,46-60,Female,"New York, NY","PHQ9:27,GAD7:6",n/a,n/a,127,n/a,NA,ACT,NA,SSRI,Pending,30 hours,5.5 hours,,n/a,14/10/2023,Increase dosage
+156,Participant_156,18-25,n/a,"Miami, FL",PHQ-9=8;GAD-7=2,-,-,99,n/a,n/a,None,10,Mood Stabilizer,,34 hours,NA,NA,Private,01-20-2025,Follow-up needed
+157,Participant_157,18-25,Female,"Phoenix, AZ",PHQ-9=11;GAD-7=16,,,missing,NA,-,n/a,,Benzodiazepine,Diagnosed,n/a,NA,,-,04/11/2023,Patient stable
+158,Participant_158,26-35,Female,"New York, NY",PHQ-9=16;GAD-7=3,123,missing,n/a,NA,,CBT,18,SNRI,Diagnosed,,6.9 hours,NA,Public,02-13-2026,Follow-up needed
+159,Participant_159,46-60,F,"Phoenix, AZ",PHQ-9=0;GAD-7=19,missing,missing,NA,,,None,,None,,46h,missing,NA,n/a,06-03-2023,Patient stable
+160,Participant_160,46-60,Female,"New York, NY","PHQ9:22,GAD7:4",missing,-,missing,n/a,,CBT,,None,Diagnosed,n/a,6.1 hours,NA,-,04-19-2025,Follow-up needed
+161,Participant_161,26-35,Other,"Miami, FL","PHQ9:15,GAD7:5",NA,NA,86,n/a,missing,Group,NA,Mood Stabilizer,Diagnosed,40 hours,NA,NA,None,08-02-2024,Increase dosage
+162,Participant_162,26-35,F,"Phoenix, AZ","PHQ9:26,GAD7:8",-,,93,95,n/a,n/a,NA,,Pending,NA,9.0h,NA,-,18/10/2023,Follow-up needed
+163,Participant_163,18-25,F,"Phoenix, AZ","PHQ9:17,GAD7:3",NA,,,n/a,n/a,Group,NA,Benzodiazepine,,42h,8.5 hours,,n/a,2024-08-29,
+164,Participant_164,46-60,F,"Miami, FL","PHQ9:22,GAD7:1",missing,n/a,125,n/a,-,DBT,NA,Benzodiazepine,,NA,missing,6,n/a,2025-06-16,Increase dosage
+165,Participant_165,60+,F,"Houston, TX","PHQ9:7,GAD7:18",missing,,n/a,107,NA,DBT,,SNRI,Diagnosed,20h,6.2h,NA,Public,26/04/2025,missing
+166,Participant_166,36-45,Female,"Chicago, IL",PHQ-9=10;GAD-7=21,81,-,missing,-,-,ACT,20,SNRI,-,n/a,missing,NA,n/a,2025-11-02,missing
+167,Participant_167,unknown,M,"Houston, TX",PHQ-9=21;GAD-7=18,130,NA,missing,135,NA,Group,,Mood Stabilizer,-,NA,6.1h,NA,None,2023-12-05,missing
+168,Participant_168,60+,F,"Houston, TX","PHQ9:23,GAD7:16",missing,n/a,,110,missing,CBT,NA,None,Undiagnosed,NA,5.3 hours,,None,2023-07-30,
+169,Participant_169,60+,Other,"Miami, FL","PHQ9:10,GAD7:0",n/a,85,NA,,n/a,CBT,,SNRI,Diagnosed,NA,NA,n/a,None,10/10/2025,missing
+170,Participant_170,unknown,M,"New York, NY","PHQ9:16,GAD7:10",missing,,NA,NA,-,Group,6,SSRI,Undiagnosed,NA,6.7 hours,n/a,-,2023-12-05,Increase dosage
+171,Participant_171,46-60,Other,"New York, NY","PHQ9:19,GAD7:10",,,,n/a,,DBT,n/a,Mood Stabilizer,-,,NA,9,,17/02/2025,Increase dosage
+172,Participant_172,36-45,Other,"Houston, TX","PHQ9:13,GAD7:3",-,-,-,81,,n/a,n/a,,-,NA,7.7h,,Public,2024-04-11,Follow-up needed
+173,Participant_173,36-45,F,"Phoenix, AZ","PHQ9:21,GAD7:5",n/a,n/a,-,missing,-,None,NA,SNRI,-,46h,6.9 hours,n/a,Private,2024-03-18,Patient stable
+174,Participant_174,26-35,M,"Phoenix, AZ","PHQ9:20,GAD7:21",missing,,missing,n/a,,Group,NA,,,,7.7h,NA,n/a,12-01-2025,
+175,Participant_175,26-35,M,"Chicago, IL",PHQ-9=1;GAD-7=5,-,122,n/a,138,,None,6,None,,27h,,,None,2024-11-26,Patient stable
+176,Participant_176,46-60,F,"New York, NY",PHQ-9=11;GAD-7=19,102,n/a,97,,n/a,CBT,n/a,,Undiagnosed,n/a,7.6 hours,n/a,Private,05/03/2025,Follow-up needed
+177,Participant_177,60+,n/a,"New York, NY","PHQ9:6,GAD7:5",-,missing,,n/a,NA,ACT,7,,Pending,NA,6.2 hours,,-,01-14-2024,missing
+178,Participant_178,26-35,Male,"Miami, FL",PHQ-9=9;GAD-7=8,,n/a,NA,,,None,n/a,Benzodiazepine,Undiagnosed,,NA,,Public,06-21-2023,Follow-up needed
+179,Participant_179,18-25,M,"Phoenix, AZ","PHQ9:11,GAD7:4",,,NA,missing,n/a,CBT,n/a,Benzodiazepine,Undiagnosed,51h,NA,,-,11-23-2024,Patient stable
+180,Participant_180,unknown,Other,"Miami, FL","PHQ9:4,GAD7:9",,-,missing,,,CBT,NA,Mood Stabilizer,Diagnosed,NA,,,n/a,03-24-2024,Patient stable
