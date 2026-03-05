@@ -15,15 +15,16 @@ execute:
 
 ## Approach
 
+I'll use the following data:
 
-put csv's onto github
-read csv in project
 
-- `url -> "github_raw_link"`
-- `library(tidyverse)`
-- `df <- read_csv("url")`
-
-I have to create a df from one of the discussions:
+- https://brightspace.cuny.edu/d2l/le/1154241/discussions/threads/4168991/View
+  - df_1
+- https://brightspace.cuny.edu/d2l/le/1154241/discussions/threads/4206056/View
+  - df_2
+- https://brightspace.cuny.edu/d2l/le/1154241/discussions/threads/4224007/View
+  - df_3
+  - Wasn't wide, so I have to make it wide
 
 ```{r}
 df <- data.frame(
@@ -36,6 +37,65 @@ df <- data.frame(
 write.csv(df, "data_03.csv", row.names = FALSE)
 ```
 
+put csv's onto github
+read csv in project
+
+- `url -> "github_raw_link"`
+- `library(tidyverse)`
+- `df <- read_csv("url")`
+
+Analysis for df_1
+
+Fix the brackets, there are too many. 
+
+- Summary table
+  - religion
+  - income bracket 
+  - n values
+  
+- ggplot
+  - x = income brackets
+  - y = n 
+  - fill = religion
+
+- Description
+  - Talk about which ones has the most per bracket
+  - Maybe even 
+  
+Analysis for df_2
+
+The only real wide portion of the dataset is the months. So, make that into months using `pivot_longer()` and try and fix the craziness of screeningscores and `pivot_wider()` PHQ and GAD. Limit selection to a couple of rows and then see if there's anything to analyze. 
+
+Could show off age, month, and values.
+
+- Summary table
+  - group age, month
+  - summarize
+    - values
+  
+- ggplot
+  - x = age
+  - y = values 
+  - cols
+  
+- Description
+  - findings
+
+Analysis for df_3
+
+Simple one, will just `pivot_longer()` team names into new column, values to score. 
+
+- Summary table
+  - entire dataset
+  
+- ggplot
+  - x = quarter
+  - y = scores
+  - fill = team
+  - cols
+  
+- Description
+  - review the chart
 
 ## Codebase
 
@@ -59,12 +119,16 @@ glimpse(df_3)
 
 ```{r}
 df_1 |>
-  rename(unknown = "Don't know/refused") |>
+  mutate(
+  low = rowSums(across(c(`<$10k`, `$10-20k`, `$20-30k`, `$30-40k`, `$40-50k`))),
+  mid = rowSums(across(c(, `$50-75k`, `$75-100k`))),
+  high = rowSums(across(c(`$100-150k`, `>$150k`)))) |>
+  select(Religion, low, mid, high) |>
   pivot_longer(cols = -Religion, names_to = "income_range", values_to = "n")
 
 df_2 |>
   select(RecordID, AgeGroup, ScreeningScores, TherapyType, Jan, Feb, Mar, Apr, May) |>
-  rename(id = RecordID, scores = ScreeningScores, age = AgeGroup, therapy = TherapyType) |>
+  rename(id = RecordID, scores = ScreeningScores, age = AgeGroup) |>
   pivot_longer(cols = c(Jan, Feb, Mar, Apr, May), names_to = "month", values_to = "values") |>
   mutate(scores = str_replace(scores, ",\\s*", ";"),
          scores = str_replace_all(scores, "[:\\-=]", ""),
@@ -73,7 +137,7 @@ df_2 |>
   separate(col = scores, into = c("PHQ", "GAD7"), sep = ";") |>
   mutate(values = replace(values, values %in% c("-", "missing", "", "n/a"), NA))
 
-df_3 |>
-  rename(teams = Team) |>
-  pivot_longer(cols = -teams, names_to = "teams", values_to = "scores")
+df_3 |> rename(quarter = Quarter) |>
+  pivot_longer(cols = -quarter, names_to = "teams", values_to = "scores") |>
+  arrange(teams)
 ```
