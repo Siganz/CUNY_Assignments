@@ -1,12 +1,78 @@
 ---
-title: "project_02"
-format: html
-toc: true
-toc-depth: 3
+
+title:  "Project 2 — Data Tidying"
+author: "Shawn Ganz"
+date:   today
+format:
+  html:
+    toc: true
+    code-fold: true
+    theme: flatly
+execute:
+  echo:    true
+  warning: false
 ---
+
+## Approach
+
+
+put csv's onto github
+read csv in project
+
+- `url -> "github_raw_link"`
+- `library(tidyverse)`
+- `df <- read_csv("url")`
+
+
+
+```{r}
+df <- data.frame(
+  Team = c("Lakers", "Celtics", "Warriors"),
+  Q1 = c(28, 31, 25),
+  Q2 = c(32, 29, 27),
+  Q3 = c(25, 33, 35),
+  Q4 = c(30, 28, 30)
+)
+
+write.csv(df, "csv_03.csv", row.names = FALSE)
+```
+
+
+## Codebase
 
 ```{r}
 library(tidyverse)
-df <- tibble(read_csv("data_01.csv"))
-df
+url_1 <- "https://raw.githubusercontent.com/Siganz/CUNY_Assignments/refs/heads/main/607/project_02/data_01.csv"
+url_2 <- "https://raw.githubusercontent.com/Siganz/CUNY_Assignments/refs/heads/main/607/project_02/data_02.csv"
+url_3 <- "https://raw.githubusercontent.com/Siganz/CUNY_Assignments/refs/heads/main/607/project_02/data_03.csv"
+
+df_1 <- read_csv(url_1)
+df_2 <- read_csv(url_2)
+df_3 <- read_csv(url_3)
+
+#df_all <- c(df_1, df_2, df_3)
+#glimpse(df_all <- c(df_1, df_2, df_3))
+
+glimpse(df_1)
+glimpse(df_2)
+glimpse(df_3)
+```
+
+```{r}
+df_1 |>
+  rename(unknown = "Don't know/refused") |>
+  pivot_longer(cols = -Religion, names_to = "income_range", values_to = "n")
+
+df_2 |>
+  select(RecordID, AgeGroup, ScreeningScores, TherapyType, Jan, Feb, Mar, Apr, May) |>
+  rename(id = RecordID, scores = ScreeningScores, age = AgeGroup, therapy = TherapyType) |>
+  pivot_longer(cols = c(Jan, Feb, Mar, Apr, May), names_to = "month", values_to = "values") |>
+  mutate(scores = str_replace(scores, ",\\s*", ";"),
+         scores = str_replace_all(scores, "[:\\-=]", ""),
+         scores = str_replace(scores, "GAD7", ""),
+         scores = str_replace(scores, "PHQ9", ""))|> 
+  separate(col = scores, into = c("PHQ", "GAD7"), sep = ";") |>
+  mutate(values = replace(values, values %in% c("-", "missing", "", "n/a"), NA))
+
+df_3
 ```
