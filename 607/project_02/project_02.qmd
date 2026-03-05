@@ -23,18 +23,17 @@ read csv in project
 - `library(tidyverse)`
 - `df <- read_csv("url")`
 
-
+I have to create a df from one of the discussions:
 
 ```{r}
 df <- data.frame(
-  Team = c("Lakers", "Celtics", "Warriors"),
-  Q1 = c(28, 31, 25),
-  Q2 = c(32, 29, 27),
-  Q3 = c(25, 33, 35),
-  Q4 = c(30, 28, 30)
+  Quarter = c("Q1","Q2","Q3","Q4"),
+  Lakers = c(28,32,25,30),
+  Celtics = c(31,29,33,28),
+  Warriors = c(25,27,35,30)
 )
 
-write.csv(df, "csv_03.csv", row.names = FALSE)
+write.csv(df, "data_03.csv", row.names = FALSE)
 ```
 
 
@@ -74,5 +73,7 @@ df_2 |>
   separate(col = scores, into = c("PHQ", "GAD7"), sep = ";") |>
   mutate(values = replace(values, values %in% c("-", "missing", "", "n/a"), NA))
 
-df_3
+df_3 |>
+  rename(teams = Team) |>
+  pivot_longer(cols = -teams, names_to = "teams", values_to = "scores")
 ```
