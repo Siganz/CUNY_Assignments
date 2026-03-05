@@ -44,7 +44,7 @@ read csv in project
 - `library(tidyverse)`
 - `df <- read_csv("url")`
 
-Analysis for df_1
+**Analysis for df_1**
 
 Fix the brackets, there are too many. 
 
@@ -62,7 +62,7 @@ Fix the brackets, there are too many.
   - Talk about which ones has the most per bracket
   - Maybe even 
   
-Analysis for df_2
+**Analysis for df_2**
 
 The only real wide portion of the dataset is the months. So, make that into months using `pivot_longer()` and try and fix the craziness of screeningscores and `pivot_wider()` PHQ and GAD. Limit selection to a couple of rows and then see if there's anything to analyze. 
 
@@ -81,7 +81,7 @@ Could show off age, month, and values.
 - Description
   - findings
 
-Analysis for df_3
+**Analysis for df_3**
 
 Simple one, will just `pivot_longer()` team names into new column, values to score. 
 
