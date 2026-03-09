@@ -1,5 +1,4 @@
 ---
-
 title:  "Project 2 — Data Tidying"
 author: "Shawn Ganz"
 date:   today
@@ -18,11 +17,11 @@ execute:
 I'll use the following data:
 
 
-- https://brightspace.cuny.edu/d2l/le/1154241/discussions/threads/4168991/View
+- [Dataset_1](https://brightspace.cuny.edu/d2l/le/1154241/discussions/threads/4168991/View)
   - df_1
-- https://brightspace.cuny.edu/d2l/le/1154241/discussions/threads/4206056/View
+- [Dataset_2](https://brightspace.cuny.edu/d2l/le/1154241/discussions/threads/4206056/View)
   - df_2
-- https://brightspace.cuny.edu/d2l/le/1154241/discussions/threads/4224007/View
+- [Dataset_3](https://brightspace.cuny.edu/d2l/le/1154241/discussions/threads/4224007/View)
   - df_3
   - Wasn't wide, so I have to make it wide
 
@@ -99,6 +98,7 @@ Simple one, will just `pivot_longer()` team names into new column, values to sco
 
 ## Codebase
 
+**Reading**
 ```{r}
 library(tidyverse)
 url_1 <- "https://raw.githubusercontent.com/Siganz/CUNY_Assignments/refs/heads/main/607/project_02/data_01.csv"
@@ -117,16 +117,19 @@ glimpse(df_2)
 glimpse(df_3)
 ```
 
+**Cleaning**
 ```{r}
-df_1 |>
+religion_df <- df_1 |>
+  rename(religion = Religion) |>
   mutate(
   low = rowSums(across(c(`<$10k`, `$10-20k`, `$20-30k`, `$30-40k`, `$40-50k`))),
   mid = rowSums(across(c(, `$50-75k`, `$75-100k`))),
   high = rowSums(across(c(`$100-150k`, `>$150k`)))) |>
-  select(Religion, low, mid, high) |>
-  pivot_longer(cols = -Religion, names_to = "income_range", values_to = "n")
+  select(religion, low, mid, high) |>
+  pivot_longer(cols = -religion, names_to = "income_range", values_to = "n")
+glimpse(religion_df)
 
-df_2 |>
+medical_df <- df_2 |>
   select(RecordID, AgeGroup, ScreeningScores, TherapyType, Jan, Feb, Mar, Apr, May) |>
   rename(id = RecordID, scores = ScreeningScores, age = AgeGroup) |>
   pivot_longer(cols = c(Jan, Feb, Mar, Apr, May), names_to = "month", values_to = "values") |>
@@ -135,9 +138,110 @@ df_2 |>
          scores = str_replace(scores, "GAD7", ""),
          scores = str_replace(scores, "PHQ9", ""))|> 
   separate(col = scores, into = c("PHQ", "GAD7"), sep = ";") |>
-  mutate(values = replace(values, values %in% c("-", "missing", "", "n/a"), NA))
+  mutate(values = replace(values, values %in% c("-", "missing", "", "n/a"), NA)) |>
+  mutate(value = as.integer(values), PHQ = as.integer(PHQ), GAD7 = as.integer(GAD7)) |>
+  select(-values) |>
+  mutate(TherapyType = ifelse(TherapyType == "n/a", "None", TherapyType),
+         month = factor(month, levels = c("Jan", "Feb","Mar", "Apr", "May")))
+glimpse(medical_df)
 
-df_3 |> rename(quarter = Quarter) |>
+basketball_df <- df_3 |> rename(quarter = Quarter) |>
   pivot_longer(cols = -quarter, names_to = "teams", values_to = "scores") |>
+  mutate(quarter = factor(quarter, levels = c("Q1","Q2","Q3","Q4"))) |>
   arrange(teams)
+glimpse(basketball_df)
 ```
+
+**Religion Summarize + ggplot**
+```{r}
+library(ggthemes)
+
+sum_religion <- religion_df |> 
+  mutate(income_range = factor(income_range, levels = c("low", "mid", "high"))) |>
+  group_by(religion, income_range) |>
+  summarize(n = sum(n))
+
+sum_religion |>
+  ggplot(aes(x = income_range, y = n, fill = religion)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Religion counts by income range",
+    x = "income range",
+    y = "count")
+
+religion_df |> group_by(religion) |>
+  summarize(n = sum(n)) |>
+  arrange(desc(n)) |>
+  slice_head(n = 3)
+
+religion_df |> group_by(religion) |>
+  summarize(n = sum(n)) |>
+  arrange(n) |>
+  slice_head(n = 3)
+
+```
+According to the religion data, there are more patrons that are of the low income range ($0 - $50k), than the other income ranges. One notable pattern is that Orthodox has more patrons that are high income than mid income that can be visually determined.
+
+The religions with the highest count of patrons:
+- Evangelical (7943)
+- Catholic  (6724)
+- Mainline Protestant (6300)
+
+The religions with the lowest count of patrons:
+- Jehovah's Witness (178)
+- Hindu  (232)
+- Muslim (234)
+
+**Medical Summarize + ggplot**
+
+```{r}
+sum_medical <- medical_df |> 
+  rename(therapy = TherapyType) |>
+  filter(!is.na(value)) |>
+  group_by(therapy, month) |>
+  summarize(n = sum(value),
+            mean_phq = mean(PHQ, na.rm = TRUE),
+            mean_gad = mean(GAD7, na.rm = TRUE),
+            .groups = "drop")
+
+glimpse(sum_medical)
+
+sum_medical |>
+  group_by(month, therapy) |>
+  ggplot(aes(month, mean_phq, color = therapy, group = therapy)) +
+  geom_line() +
+  geom_point() + 
+  labs(title = "Mean PHQ over time",
+       x = "Month",
+       y = "Mean PHQ Score")
+
+sum_medical |>
+  group_by(month, therapy) |>
+  ggplot(aes(month, mean_gad, color = therapy, group = therapy)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Mean GAD over time",
+       x = "Month",
+       y = "Mean GAD Score")
+```
+We can see the highest Mean PHQ score was in April with the Group therapy, which also had the largest drop in the following month. We can see the same in the GAD ggplot, where the highest GAD score was in January with the ACT therapy, followed by the largest drop. 
+
+**Basketball Summarize + ggplot**
+
+```{r}
+
+basketball_df |>
+  ggplot(aes(quarter, scores, fill = teams)) +
+  geom_col(position = "dodge") +
+  labs(title = "Scores Per Team Per Quarter",
+       x = "Quarters",
+       y = "Score")
+
+basketball_df |>
+  group_by(teams) |>
+  slice_max(scores, n = 1, with_ties = FALSE) |>
+  select(teams, quarter, scores)
+```
+From the ggplot we can see that the data is pretty average, where all four quarters had somewhat equal scoring. When we look at the summarization table, we can see that the Celtics highest scoring quarter was Q3, Warriors was Q3, and Lakers was Q2. 
+

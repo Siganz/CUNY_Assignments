@@ -39,3 +39,28 @@ Use `rowSums()`. It’s built for row-wise addition across multiple columns and 
 ```r
 mutate(total = rowSums(across(c(col1, col2, col3)), na.rm = TRUE))
 ```
+
+---
+
+### Q: How do you correctly order categorical values like "low", "mid", "high"?
+
+**A:**  
+Convert the column to a factor and explicitly define the level order.  
+By default, R sorts character values alphabetically, which would incorrectly place `"high"` before `"low"` and `"mid"`. Defining factor levels ensures plots and summaries follow the intended logical order.
+
+---
+
+### Q: What are good `ggplot` geoms for visualizing relationships involving two or more variables?
+
+**A:**  
+Common choices include:
+
+- **Bar charts (`geom_col` / `geom_bar`)** — compare counts or totals across categories.
+- **Line charts (`geom_line`)** — show trends over an ordered variable such as time.
+- **Point plots (`geom_point`)** — display relationships between two numeric variables.
+- **Boxplots (`geom_boxplot`)** — compare distributions of a numeric variable across categories.
+- **Heatmaps (`geom_tile`)** — show intensity or magnitude across two categorical dimensions.
+- **Grouped or stacked bars** — useful when comparing multiple categories within another grouping variable.
+
+The choice depends on whether you want to highlight **comparisons, trends, distributions, or relationships** between variables.
+---
