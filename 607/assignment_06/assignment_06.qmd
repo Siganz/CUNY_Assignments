@@ -1,0 +1,104 @@
+---
+title: "assignment_06"
+format: html
+---
+
+## Approach
+
+I got my three books, which are open source. 
+
+### Mathematics for Machine Learning
+
+- Title
+  - *Mathematics for Machine Learning*
+- Authors
+  - Marc Peter Deisenroth
+  - A. Aldo Faisal
+  - Cheng Soon Ong
+- Publisher
+  - Cambridge University Press
+- Publication Year
+  - 2020
+- Focus
+  - Mathematical foundations for machine learning
+
+### An Introduction to Statistical Learning
+
+- Title
+  - *An Introduction to Statistical Learning*
+- Authors
+  - Gareth James
+  - Daniela Witten
+  - Trevor Hastie
+  - Robert Tibshirani
+- Publisher
+  - Springer
+- Publication Year
+  - 2021
+- Focus
+  - Introductory statistical learning methods and core machine learning concepts
+
+### Understanding Deep Learning
+
+- Title
+  - *Understanding Deep Learning*
+- Authors
+  - Simon J.D. Prince
+- Publisher
+  - MIT Press
+- Publication Year
+  - 2023
+- Focus
+  - Modern deep learning theory, architectures, and practice
+
+
+### HTML
+
+I got a reference of what an html looks like from [MDN](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Structuring_content/Basic_HTML_syntax).
+```{html}
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>My test page</title>
+  </head>
+  <body>
+    <p>This is my page</p>
+  </body>
+</html>
+```
+
+I got a reference of what JSON looks like from [rfc-editor](https://www.rfc-editor.org/rfc/rfc8259).
+```{json}
+{
+  "Image": {
+      "Width":  800,
+      "Height": 600,
+      "Title":  "View from 15th Floor",
+      "Thumbnail": {
+          "Url":    "http://www.example.com/image/481989943",
+          "Height": 125,
+          "Width":  100
+      },
+      "Animated" : false,
+      "IDs": [116, 943, 234, 38793]
+    }
+}
+```
+
+So, I'll just rewrite those into HTML/JSON, manually. We also need to figure out how to get it into a tibble. So, I could use rvest for HTML and jsonlite for JSON. 
+
+```{r}
+#| eval: false
+#| include: true
+library(tidyverse)
+library(rvest)
+library(jsonlite)
+
+?read_html
+?html_table
+?fromJSON
+?tibble
+```
+
+So I'll read the HTML and see if I need to expand upon it. Same thing with fromJSON. Ideally they should both be similar after conversion to a tibble. 
