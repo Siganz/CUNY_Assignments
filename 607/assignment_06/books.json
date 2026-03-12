@@ -1,0 +1,27 @@
+
+{
+  "books": [
+    {
+      "title": "Mathematics for Machine Learning",
+      "authors": "Marc Peter Deisenroth; A. Aldo Faisal; Cheng Soon Ong",
+      "publisher": "Cambridge University Press",
+      "year": 2020,
+      "focus": "Mathematical foundations for ML"
+    },
+    {
+      "title": "An Introduction to Statistical Learning",
+      "authors": "Gareth James; Daniela Witten; Trevor Hastie; Robert Tibshirani",
+      "publisher": "Springer",
+      "year": 2021,
+      "focus": "Statistical learning methods"
+    },
+    {
+      "title": "Understanding Deep Learning",
+      "authors": "Simon J.D. Prince",
+      "publisher": "MIT Press",
+      "year": 2023,
+      "focus": "Deep learning theory"
+    }
+  ]
+}
+
