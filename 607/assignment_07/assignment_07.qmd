@@ -1,0 +1,67 @@
+---
+title: "assignment_07"
+format: html
+toc: true
+toc-depth: 5
+toc-location: left
+---
+
+## Approach
+
+I'll ask, were the top 10 viewed stories in the last 30 days?
+
+This is an example of their api: `GET https://api.nytimes.com/svc/mostpopular/v2/viewed/30.json?api-key=YOUR_KEY`
+
+### Schema
+
+#### Core Fields
+
+-   **url** *(string)* — Article URL\
+-   **adx_keywords** *(string)* — Semicolon-separated keywords\
+-   **section** *(string)* — Section (e.g., "Science")\
+-   **byline** *(string)* — Author line (e.g., "By John Doe")\
+-   **type** *(string)* — Asset type (e.g., "Article", "Interactive")\
+-   **title** *(string)* — Headline\
+-   **abstract** *(string)* — Summary\
+-   **published_date** *(string)* — Format: YYYY-MM-DD\
+-   **source** *(string)* — Publisher\
+-   **id** *(integer)* — Asset ID\
+-   **asset_id** *(integer)* — Same as id\
+-   **column** *(string)* — Deprecated (null)
+
+------------------------------------------------------------------------
+
+#### Facets (Categorization)
+
+-   **des_facet** *(array*<string>) — Topics / descriptions\
+-   **org_facet** *(array*<string>) — Organizations\
+-   **per_facet** *(array*<string>) — People\
+-   **geo_facet** *(array*<string>) — Locations
+
+------------------------------------------------------------------------
+
+#### Media (array)
+
+Each item:
+
+##### Media
+
+-   **type** *(string)* — e.g., "image"\
+-   **subtype** *(string)* — e.g., "photo"\
+-   **caption** *(string)* — Description\
+-   **copyright** *(string)* — Credit\
+-   **approved_for_syndication** *(boolean)*\
+-   **media-metadata** *(array)*
+
+##### MediaMetadata
+
+-   **uri** *(string)* — Unique identifier\
+-   **url** *(string)* — Image URL\
+-   **width** *(integer)*\
+-   **height** *(integer)*
+
+I'll save my api-key into an r env that will be kept secret and not uploaded to github.
+
+Then I'll transform this into a tibble, view the data, create tibble, select the columns to keep, then do a summarization table, then slice_max with n = 10. 
+
+## Codebase
