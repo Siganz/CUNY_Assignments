@@ -27,7 +27,6 @@ This is an example of their api: `GET https://api.nytimes.com/svc/mostpopular/v2
 -   **source** *(string)* — Publisher\
 -   **id** *(integer)* — Asset ID\
 -   **asset_id** *(integer)* — Same as id\
--   **column** *(string)* — Deprecated (null)
 
 ------------------------------------------------------------------------
 
@@ -65,3 +64,67 @@ I'll save my api-key into an r env that will be kept secret and not uploaded to 
 Then I'll transform this into a tibble, view the data, create tibble, select the columns to keep, then do a summarization table, then slice_max with n = 10. 
 
 ## Codebase
+
+### Initialization
+```{r}
+library(tidyverse)
+library(jsonlite)
+library(ggthemes)
+
+readRenviron(".Renviron")
+api_key <- Sys.getenv("API_KEY")
+
+days <- 30
+
+url <- paste0("https://api.nytimes.com/svc/mostpopular/v2/viewed/", days, ".json?api-key=", api_key)
+res <- fromJSON(url)
+glimpse(res)
+```
+
+### Reading the Results
+
+The fromJSON function returned a list of four, of which $results is what I really want. 
+
+```{r}
+nyt_top_articles <- res$results
+glimpse(nyt_top_articles)
+```
+
+Interesting that the Schema does not include a ranking system for the top 20 pulls. The API also doesn't allow me to get top #, it always returns 20. I'll just create a sub-table of the results and I think it's safe to assume that the top 20 articles that get returned are already in order of popularity, so I'll create a new field called rank and have it valued as row number. 
+
+```{r}
+nyt <- nyt_top_articles|>
+  select(id, title, section, subsection, abstract, adx_keywords) |>
+  mutate(rank = row_number()) |>
+  relocate(rank)
+```
+
+### Quick Analysis
+
+We can view the top 10 articles via:
+
+```{r}
+nyt |> 
+  select(rank, title)
+```
+We can see that the # 1 article is the Robert S. Mueller Death, which was a big headline at the time. Out of curiosity I also did a plot about section/categories, because I noticed that most of these articles are political. 
+
+```{r}
+nyt |> 
+  count(section) |>
+  ggplot(aes(x = reorder(section, n), y = n / sum(n), fill = section)) +
+  geom_col() +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent) +
+  labs(
+    title = 'NYT: Top Articles in The Last 30 Days by Section',
+    subtitle = "Data was derived from NYT 'most viewed' api. 20 articles are the standard return value.",
+    y = 'percent',
+    x = 'category'
+  ) +
+  theme_fivethirtyeight() +
+  theme(legend.position = "none")
+
+```
+
+From our quick analysis we can see that over 60% of the popular articles were from their U.S. section.
