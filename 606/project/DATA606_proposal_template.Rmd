@@ -1,0 +1,109 @@
+---
+title: "DATA 606 Data Project Proposal"
+author: "Shawn Ganz"
+output: pdf_document
+---
+
+### Data Preparation
+
+```{r setup, echo=TRUE, results='hide', warning=FALSE, message=FALSE}
+# load data
+library(tidyverse)
+library(ggplot2)
+library(infer)
+library(haven)
+
+df <- read_xpt("https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/DR1TOT_L.xpt") |>
+  select(day_of_week = DR1DAY,
+         recall_status = DR1DRSTZ,
+         total_kcal = DR1TKCAL) |>
+  filter(recall_status == 1, day_of_week %in% 1:7) |>
+  mutate(weekend = ifelse(day_of_week %in% c(1, 7), "weekend", "weekday"))
+
+glimpse(df)  
+```
+
+
+### Research question 
+
+**Among NHANES 2021–2023 participants with a reliable Day 1 dietary recall, is mean total daily energy intake different between weekday and weekend intake days**
+
+
+### Cases 
+
+**Each case represents one NHANES participant, 6,694 cases after filtering for the project proposal.**
+
+
+### Data collection 
+
+**The data was collected as part of the NHANES dietary interview component, “What We Eat in America” for August 2021-August 2023 cycle. The objective of the dietary interview component is to obtain detailed dietary intake information from NHANES participants.** 
+
+
+### Type of study 
+
+**This is an observational study. NHANES measures what participants reported consuming; it does not assign diets or treatments.**
+
+
+### Data Source 
+
+**National Center for Health Statistics (NCHS). National Health and Nutrition Examination Survey: August 2021–August 2023 Dietary Interview – Total Nutrient Intakes, First Day (DR1TOT_L), [dataset]("https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/DR1TOT_L.xpt"), [dataset information](https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/DR1TOT_L.htm), [study information](https://wwwn.cdc.gov/nchs/nhanes/search/datapage.aspx?Component=Dietary&Cycle=2021-2023) .**
+
+
+### Describe your variables?
+
+**`day_of_week`: qualitative (categorical), derives two categorical (weekday or weekend) based off `DR1DAY`, which codes the intake day as Sunday through Saturday. `recall_status`: qualitative (categorical). This comes from `DR1DRSTZ`, where 1 means the dietary recall was reliable and met NHANES minimum criteria. `total_kcal`: quantitative. This comes from `DR1TKCAL`, total daily energy intake measured in kilocalories. The dependent variable is `total_kcal` and the explanatory variable is `weekend`.**
+
+
+### Relevant summary statistics 
+
+**Provide summary statistics for each the variables. Also include appropriate visualizations related to your research question (e.g. scatter plot, boxplots, etc). This step requires the use of R, hence a code chunk is provided below. Insert more code chunks as needed.**
+
+```{r}
+# Visualize the data as is
+ggplot(df, aes(x = factor(day_of_week), y = total_kcal)) +
+  geom_boxplot() +
+  labs(
+    title = "Total Daily Energy Intake by Day of the Week",
+    x = "Day of the Week",
+    y = "Total Daily Energy Intake (kcal)"
+  )
+
+ggplot(df, aes(x = total_kcal)) +
+  geom_histogram(bins = 30) +
+  labs(
+    title = "Distribution of Total Daily Energy Intake",
+    x = "Total Daily Energy Intake (kcal)",
+    y = "Count"
+  )
+
+# Calculate means by `weekend`
+df_means <- df |>
+  group_by(weekend) |>
+  summarise(
+    n = n(),
+    mean_kcal = mean(total_kcal, na.rm = TRUE),
+    median_kcal = median(total_kcal, na.rm = TRUE),
+    iqr_kcal = IQR(total_kcal, na.rm = TRUE),
+    min_kcal = min(total_kcal, na.rm = TRUE),
+    max_kcal = max(total_kcal, na.rm = TRUE)
+  )
+
+# Visualize Mean data
+ggplot(df_means, aes(x = weekend, y = mean_kcal)) +
+  geom_col() +
+  labs(
+    title = "Mean Total Daily Energy Intake by Day Type",
+    x = "Day Type",
+    y = "Mean Total Daily Energy Intake (kcal)"
+  )
+
+ggplot(df_means, aes(x = weekend, y = n)) +
+  geom_col() +
+  labs(
+    title = "Number of Participants by Day Type",
+    x = "Day Type",
+    y = "Count"
+  )
+
+```
+
