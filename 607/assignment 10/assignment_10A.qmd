@@ -1,0 +1,67 @@
+---
+title: "assignment_10A"
+format: html
+toc: true
+toc-depth: 5
+toc-location: left
+bibliography: references.bib
+---
+
+## Approach
+
+### Set Up
+
+```{r}
+library(tidytext)
+library(janeaustenr)
+library(dplyr)
+library(stringr)
+library(tidyr)
+library(ggplot2)
+```
+### Source Code
+
+```{r}
+tidy_books <- austen_books() %>%
+  group_by(book) %>%
+  mutate(
+    linenumber = row_number(),
+    chapter = cumsum(str_detect(
+      text,
+      regex("^chapter [\\divxlc]", ignore_case = TRUE)
+    ))
+  ) %>%
+  ungroup() %>%
+  unnest_tokens(word, text)
+
+jane_austen_sentiment <- tidy_books %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(book, index = linenumber %/% 80, sentiment) %>%
+  pivot_wider(names_from = sentiment, values_from = n, values_fill = 0) %>% 
+  mutate(sentiment = positive - negative)
+
+ggplot(jane_austen_sentiment, aes(index, sentiment, fill = book)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~book, ncol = 2, scales = "free_x")
+```
+
+### Citations
+
+[@silge2022; @yan2021]
+
+### Implementation
+
+I'll use AFINN instead of BING. I'll also try the gutenbergr package
+```{r}
+library(gutenbergr)
+gutenberg_metadata |> filter(str_detect(author, "Vonnegut"))
+vonnegut <- gutenberg_download(30240)
+head(vonnegut)
+```
+I'll also use AFINN
+
+```{r}
+afinn <- get_sentiments("afinn")
+```
+
+## Codebase

@@ -1,0 +1,53 @@
+---
+title: "Shawn_Ganz_Vignette"
+format: html
+toc: true
+toc-depth: 5
+toc-location: left
+---
+
+## Approach
+
+I'll be using the National Center for Health Statistics' (NCHS) National Health and Nutrition Examination Survey (NHANES) study from August 2021-August 2023.
+
+- [dataset]("https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/DR1TOT_L.xpt")
+- [dataset information](https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/DR1TOT_L.htm)
+- [study information](https://wwwn.cdc.gov/nchs/nhanes/search/datapage.aspx?Component=Dietary&Cycle=2021-2023)
+
+I'll show how simple it is by using tidyverse to download, prep, and display the data. We download the entire dataset, select the columns we want to showcase (DBD100, DR1DRSTZ), select, filter, and then display.
+
+## Codebase
+
+```{r}
+
+library(tidyverse)
+library(haven)
+library(ggplot2)
+
+df <- read_xpt("https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/DR1TOT_L.xpt") |>
+  select(salt_added_table = DBD100,
+         recall_status = DR1DRSTZ) |>
+  filter(recall_status == 1, salt_added_table %in% c(1, 2, 3, 7)) |>
+  mutate(
+    salt_added_table = case_when(
+      salt_added_table == 1 ~ "Rarely",
+      salt_added_table == 2 ~ "Occasionally",
+      salt_added_table == 3 ~ "Very often",
+      salt_added_table == 7 ~ "Refused"
+    )
+  ) |>
+  count(salt_added_table)
+
+ggplot(df, aes(x = salt_added_table, y = n)) +
+  geom_col() +
+  labs(
+    title = "How Often Salt Is Added to Food at the Table",
+    x = "Response",
+    y = "Count"
+  ) +
+  theme_minimal()
+```
+
+## Conclusion
+
+Just a quick example to show that power of tidyverse in altering a DF with 8860 entries and over 50 columns, to a dataframe with two columns that are altered for whatever you need - in this case showing how often Salt is Added to food on the table. 

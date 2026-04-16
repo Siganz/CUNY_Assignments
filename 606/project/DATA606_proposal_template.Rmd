@@ -46,7 +46,7 @@ glimpse(df)
 
 ### Data Source 
 
-**National Center for Health Statistics (NCHS). National Health and Nutrition Examination Survey: August 2021–August 2023 Dietary Interview – Total Nutrient Intakes, First Day (DR1TOT_L), [dataset]("https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/DR1TOT_L.xpt"), [dataset information](https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/DR1TOT_L.htm), [study information](https://wwwn.cdc.gov/nchs/nhanes/search/datapage.aspx?Component=Dietary&Cycle=2021-2023) .**
+**National Center for Health Statistics (NCHS). National Health and Nutrition Examination Survey: August 2021–August 2023 Dietary Interview – Total Nutrient Intakes, First Day (DR1TOT_L), [dataset]("https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/DR1TOT_L.xpt"), [dataset information](https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/DR1TOT_L.htm), [study information](https://wwwn.cdc.gov/nchs/nhanes/search/datapage.aspx?Component=Dietary&Cycle=2021-2023).**
 
 
 ### Describe your variables?

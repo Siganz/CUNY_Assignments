@@ -1,0 +1,50 @@
+---
+title: "assignment_10B"
+format: html
+toc: true
+toc-depth: 5
+toc-location: left
+---
+
+## Approach
+
+### Brainstorm 
+
+```{r}
+library(tidyverse)
+library(jsonlite)
+
+df <- fromJSON("https://api.nobelprize.org/2.1/nobelPrizes")
+glimpse(df)
+```
+
+Lot of nested dataframes and lists. Seems better to read the [documentation](https://app.swaggerhub.com/apis/NobelMedia/NobelMasterData/2.0) where it's better to create an https request. Unless the request is to use `https://api.nobelprize.org/2.1/nobelPrizes`? 
+
+### Questions
+
+After understanding the data, I can come up with the following questions: 
+
+- Did Friedrich Nietzsche ever win a Nobel Prize?
+- What was Betrand Russell's motivation for winning a prize?
+- Who won the Nobel Prize in Literature in 2010-2020?
+- What is the overall ratio of male to female Nobel Prize laureates? Among the five countries with the most birthed laureates, what is the male-to-female ratio in each country?
+
+#### Nietzsche
+
+Bool response for the query: `http://api.nobelprize.org/2.0/laureates?name=Friedrich%20Nietzsche`
+
+#### Betrand Russell
+
+Return motivation columns from the query: `http://api.nobelprize.org/2.0/laureates?name=Betrand%20Russell`
+
+#### Nobel Prize Literature 2010-2020
+
+`http://api.nobelprize.org/2.0/laureates?nobelPrizeYear=2010&yearTo=2020&nobelPrizeCategory=lit`
+
+#### Ratio of male to Female Nobel Prize laureates and country outliers. 
+
+We would use the full laureates dataset to calculate the overall male-to-female ratio among Nobel Prize laureates. Then we would group laureates by birthContinent, select the five continents with the most laureates, and calculate the ratio for each continent.
+
+`http://api.nobelprize.org/2.0/laureates`
+
+## Codebase
