@@ -145,3 +145,57 @@ names_tbl <- df_prizes |>
 
 So yes, the structure is ugly, but it’s not broken. It just needs flattening.
 ---
+
+---
+
+### Q: How can I display the contents of a column within |> 
+**A:** 
+
+pull(column)
+
+---
+
+### Q: What does transmute do? 
+**A:**
+
+transmute() creates new columns and drops everything else.
+
+So instead of mutate() you can do this:
+
+```
+lit_winners <- lit$nobelPrizes %>%
+  select(awardYear, laureates) %>%
+  unnest(cols = laureates) %>%
+  transmute(
+    year = awardYear,
+    winner = coalesce(knownName.en, fullName.en)
+  )
+```
+
+it means:
+
+make a new column called year from awardYear
+make a new column called winner from knownName.en or fullName.en
+keep only those two columns
+
+So:
+
+mutate() = add/modify columns
+transmute() = add/modify columns and keep only the result
+
+---
+
+### Q: If we pivot_wider() on gender, but there is no female entry, do we escape the pipe and create an if statement to create a column called female or can we do that within the pipe? 
+**A:**
+
+If pivot_wider() does not create a female column because that category never appears in the data, then mutate() cannot reference it later in the pipe. In that case, the safest fix is to step out of the pipe after pivot_wider(), check whether the columns exist, and create them manually if needed.
+
+if (!"male" %in% names(country_ratios)) {
+  country_ratios$male <- 0L
+}
+
+if (!"female" %in% names(country_ratios)) {
+  country_ratios$female <- 0L
+}
+
+This handles the edge case where one category is completely absent, so later calculations like totals or ratios will still run correctly.

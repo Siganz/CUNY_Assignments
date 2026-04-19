@@ -47,4 +47,142 @@ We would use the full laureates dataset to calculate the overall male-to-female 
 
 `http://api.nobelprize.org/2.0/laureates`
 
-## Codebase
+## Codeurl
+
+### packages
+```{r}
+library(tidyverse)
+library(jsonlite)
+library(tidyr)
+library(stringr)
+```
+
+### set up
+```{r}
+url <- "https://api.nobelprize.org/2.1"
+
+# calling function makes it easier to answer the different questions
+get_api <- function(path) {
+  fromJSON(path, flatten = TRUE)
+}
+```
+
+### Q1: Did Friedrich Nietzsche ever win a Nobel Prize?
+```{r}
+nietzsche <- get_api(
+  paste0(url, "/laureates?name=Friedrich%20Nietzsche")
+)
+
+if (length(nietzsche$laureates) > 0) "Yes" else "No"
+```
+
+### Q2: What was he motivation for Bertrand Russell’s Nobel Prize?
+```{r}
+russell <- get_api(
+  paste0(url, "/laureates?name=Bertrand%20Russell")
+)
+
+russell$laureates|>
+  select(fullName.en, nobelPrizes) |>
+  unnest(cols = nobelPrizes) |>
+  select(fullName.en, awardYear, category.en, motivation.en) |>
+  pull(motivation.en)
+
+```
+
+### Q3: Who won the Nobel Prize in Literature from 2010 to 2020?
+```{r}
+lit <- get_api(
+  paste0(url, "/nobelPrizes?nobelPrizeCategory=literature&awardYear=2010&yearTo=2020")
+)
+
+lit_winners <- lit$nobelPrizes|>
+  select(awardYear, laureates)|>
+  unnest(cols = laureates) |>
+  transmute(
+    year = awardYear,
+    winner = coalesce(knownName.en, fullName.en)
+  )
+
+lit_winners
+```
+
+### Q4: Overall male-to-female ratio, and the ratio in the 5 birth countries with the most laureates
+```{r}
+
+all_laureates <- get_api(
+  paste0(url, "/laureates?limit=2000")
+)
+
+laureates_df <- all_laureates$laureates|>
+  transmute(
+    name = coalesce(knownName.en, fullName.en),
+    gender,
+    birth_country = birth.place.country.en
+  )
+
+overall_ratio <- laureates_df |>
+  filter(gender %in% c("male", "female")) |>
+  count(gender) |>
+  pivot_wider(names_from = gender, values_from = n) |>
+  mutate(male_to_female_ratio = male / female)
+
+overall_ratio
+
+top5_countries <- laureates_df |>
+  filter(!is.na(birth_country)) |>
+  count(birth_country, sort = TRUE) |>
+  slice_head(n = 5)
+
+top5_countries
+
+country_ratios <- laureates_df |>
+  filter(birth_country %in% top5_countries$birth_country,
+         gender %in% c("male", "female")) |>
+  count(birth_country, gender) |>
+  pivot_wider(
+    names_from = gender,
+    values_from = n,
+    values_fill = 0
+  )
+
+if (!"male" %in% names(country_ratios)) {
+  country_ratios$male <- 0L
+}
+
+if (!"female" %in% names(country_ratios)) {
+  country_ratios$female <- 0L
+}
+
+country_ratios <- country_ratios |>
+  mutate(
+    total = male + female,
+    male_to_female_ratio = if_else(female == 0, NA_real_, male / female),
+    ratio_text = if_else(
+      female == 0,
+      "No women; 100% male",
+      paste0(round(male / female, 2), ":1")
+    )
+  ) |>
+  arrange(desc(total))
+
+country_ratios |>
+  arrange(male_to_female_ratio)
+
+country_ratios |>
+  select(birth_country, male, female) |>
+  pivot_longer(cols = c(male, female),
+               names_to = "gender",
+               values_to = "count") |>
+  ggplot(aes(x = birth_country, y = count, fill = gender)) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  labs(
+    title = "Male and Female Nobel Laureates by Birth Country",
+    x = "Birth Country",
+    y = "Count"
+  ) +
+  theme_minimal()
+```
+
+France has the strongest female representation relative to men, while the United States has the highest raw counts of both female and male laureates. In our sample, countries such as Japan and the U.K. had no female laureates. These results are based on birth_country, not the country where a laureate later lived or grew up.
