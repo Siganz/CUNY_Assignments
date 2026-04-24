@@ -1,0 +1,86 @@
+---
+title: "assignment 11"
+format: html
+toc: true
+toc-depth: 5
+toc-location: left
+---
+
+## Approach
+
+### Prelim
+I'm going to need to use the previous data which was created via assignment 3, so I brought over the code and the data. I modified the code to create an output called movie_ratings_fixed.csv that I will use for the recommender. 
+
+```{r}
+#| eval: false
+library(tidyverse)
+
+df <- read.csv("https://raw.githubusercontent.com/Siganz/CUNY_Assignments/refs/heads/main/607/assignment_11/movie_ratings.csv") |>
+  select(name, title, rating)
+
+# Global mean
+global_mean <- mean(df$rating, na.rm = TRUE)
+
+# Rater effects
+s_name <- df |>
+  summarize(rater_mean = mean(rating, na.rm = TRUE), .by = name) |>
+  mutate(rater_effect = rater_mean - global_mean)
+
+# Movie/item effects
+s_title <- df |>
+  summarize(item_mean = mean(rating, na.rm = TRUE), .by = title) |>
+  mutate(item_effect = item_mean - global_mean)
+
+# Fill original NA ratings
+df2 <- df |>
+  left_join(s_name, by = "name") |>
+  left_join(s_title, by = "title") |>
+  mutate(
+    rating = if_else(
+      is.na(rating),
+      round(global_mean + rater_effect + item_effect),
+      rating
+    )
+  )
+
+# Add Shawn, who has no ratings
+df3 <- df2 |>
+  distinct(title, item_effect) |>
+  mutate(
+    name = "Shawn",
+    rater_effect = 0,
+    rating = round(global_mean + item_effect)
+  ) |>
+  select(name, title, rating)
+
+# Combine fixed original data + Shawn rows
+movie_ratings_fixed <- df2 |>
+  select(name, title, rating) |>
+  bind_rows(df3)
+
+# Write CSV
+write.csv(movie_ratings_fixed, "movie_ratings_fixed.csv", row.names = FALSE)
+
+movie_ratings_fixed
+```
+
+### Main
+
+I'll utilize `recommenderlab` and I'll do their UBCF method. The [github](https://github.com/mhahsler/recommenderlab) has an easy to follow usage. So I'll just use that and replace the data with the one developed in assignment 3.
+
+```{r}
+#| eval: false
+
+df <- read.csv("https://raw.githubusercontent.com/Siganz/CUNY_Assignments/refs/heads/main/607/assignment_11/movie_ratings_fixed.csv")
+
+train <- MovieLense100[1:300]
+rec <- Recommender(train, method = "UBCF")
+rec
+
+pre <- predict(rec, MovieLense100[301:302], n = 5)
+pre
+
+scheme <- evaluationScheme(MovieLense100, method = "cross-validation", k = 10, given = -5,
+    goodRating = 4)
+scheme
+```

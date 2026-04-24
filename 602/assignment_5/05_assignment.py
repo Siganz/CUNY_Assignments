@@ -62,7 +62,7 @@ def exercise05(n):
     # The function exercise05() receives an integer n. Return an ndarray filled with zeros of size n x n (n rows, n columns)
 
     # ------ Place code below here \/ \/ \/ ------
-    zeros = np.zeroes((n,n))
+    zeros = np.zeros((n,n))
     # ------ Place code above here /\ /\ /\ ------
     return zeros
 

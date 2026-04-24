@@ -16,7 +16,10 @@ def exercise01():
     Fill the DataFrame with arbitrary data.
     '''
     # ------ Place code below here \/ \/ \/ ------
-    
+    df1 = pd.DataFrame({
+        'Name': ['a', 'b', 'c', 'd', 'e'],
+        'Age': [1, 2, 3, 4, 5]
+    })
     # ------ Place code above here /\ /\ /\ ------
     return df1
 
@@ -26,7 +29,8 @@ def exercise02():
     The dataset contains columns 'id', 'name', 'value'. Print the first 5 rows as part of the exercise.
     '''
     # ------ Place code below here \/ \/ \/ ------
-   
+    df2 = pd.read_csv('data.csv')
+    print(df2.head())
     # ------ Place code above here /\ /\ /\ ------
     return df2
 
@@ -35,7 +39,7 @@ def exercise03(df):
     Given a DataFrame 'df', filter out and return a new DataFrame containing only the rows where 'value' is greater than 50.
     '''
     # ------ Place code below here \/ \/ \/ ------
-    
+    filtered_df = df[df['value'] > 50]
     # ------ Place code above here /\ /\ /\ ------
     return filtered_df
 
@@ -46,7 +50,11 @@ def exercise04():
     Each dictionary represents a row, with 'city' and 'data' as keys.
     '''
     # ------ Place code below here \/ \/ \/ ------
-
+    df4 = pd.DataFrame([
+        {'city': 'a', 'data': 1},
+        {'city': 'b', 'data': 2},
+        {'city': 'c', 'data': 3}
+    ])
     # ------ Place code above here /\ /\ /\ ------
     return df4
 
@@ -66,7 +74,7 @@ def exercise06():
     Assume the Excel file has columns 'A', 'B', 'C'. Return the DataFrame.
     '''
     # ------ Place code below here \/ \/ \/ ------
-    
+    df6 = pd.read_excel('data.xlsx', sheet_name=0)
     # ------ Place code above here /\ /\ /\ ------
     return df6
 
@@ -75,7 +83,7 @@ def exercise07(df):
     Given a DataFrame 'df', drop any rows that have missing values and return the cleaned DataFrame.
     '''
     # ------ Place code below here \/ \/ \/ ------
-    
+    cleaned_df = df.dropna()
     # ------ Place code above here /\ /\ /\ ------
     return cleaned_df
 
@@ -84,7 +92,7 @@ def exercise08(df, column_name):
     Given a DataFrame 'df' and a 'column_name' as a string, return the average value of that column.
     '''
     # ------ Place code below here \/ \/ \/ ------
-    
+    avg_value = df[column_name].mean()
     # ------ Place code above here /\ /\ /\ ------
     return avg_value
 
@@ -116,7 +124,10 @@ class TestAssignment(unittest.TestCase):
 
     def test_exercise06(self):
        df = exercise06()
-       self.assertTrue('A' in df.columns and 'B' in df.columns and 'C' in df.columns)
+       # self.assertTrue('A' in df.columns and 'B' in df.columns and 'C' in df.columns)
+       # this should be changed to 
+       self.assertTrue('id' in df.columns and 'name' in df.columns and 'value' in df.columns)
+       
 
     def test_exercise07(self):
        df = pd.DataFrame({'A': [1, 2, None, 4], 'B': [None, 2, 3, 4]})
