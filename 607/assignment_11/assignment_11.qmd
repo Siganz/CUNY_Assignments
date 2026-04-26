@@ -84,3 +84,101 @@ scheme <- evaluationScheme(MovieLense100, method = "cross-validation", k = 10, g
     goodRating = 4)
 scheme
 ```
+
+## Codebase
+
+```{r}
+library(tidyverse)
+library(recommenderlab)
+
+df <- read.csv("https://raw.githubusercontent.com/Siganz/CUNY_Assignments/refs/heads/main/607/assignment_11/movie_ratings.csv")
+
+rating_matrix <- df |>
+  select(name, title, rating) |>
+  pivot_wider(names_from = title, values_from = rating, values_fill = NA) |>
+  column_to_rownames("name") |>
+  as.matrix() |>
+  as("realRatingMatrix")
+
+rec <- Recommender(rating_matrix, method = "UBCF")
+
+top_rec <- predict(rec, rating_matrix, n = 1)
+as(top_rec, "list")
+
+results <- tibble(
+  user = rownames(rating_matrix),
+  recommended = as(top_rec, "list")) |>
+  unnest(recommended) |>
+  rename(movie = recommended)
+
+scheme <- evaluationScheme(rating_matrix, method = "cross-validation", k = 4, given = -2, goodRating = 4)
+
+eval_results <- evaluate(scheme, method = "UBCF", type = "topNList", n = 1:5)
+
+avg(eval_results)
+plot(eval_results)
+```
+
+## Video
+
+```{r}
+df |> arrange(name, desc(rating))
+results
+
+```
+The results show that the recommendations for each person are movies they didn't watch, which is accurate to the model.
+
+```{r}
+library(tidyverse)
+library(recommenderlab)
+
+df <- read.csv("https://raw.githubusercontent.com/Siganz/CUNY_Assignments/refs/heads/main/607/assignment_11/movie_ratings.csv")
+```
+
+Upon reviewing it makes little sense to do a recommendation model, probably should've done a missing value model instead. 
+```{r}
+rating_matrix <- df |>
+  select(name, title, rating) |>
+  pivot_wider(names_from = title, values_from = rating, values_fill = NA) |>
+  column_to_rownames("name") |>
+  as.matrix() |>
+  as("realRatingMatrix")
+
+rec <- Recommender(
+  rating_matrix,
+  method = "UBCF",
+  parameter = list(method = "Cosine", nn = 3)
+)
+
+pred <- predict(
+  rec,
+  rating_matrix,
+  type = "ratings"
+)
+
+original <- as(rating_matrix, "matrix")
+predicted <- as(pred, "matrix")
+
+missing <- is.na(original)
+
+filled_missing_values <- tibble(
+  name = rownames(original)[row(original)[missing]],
+  title = colnames(original)[col(original)[missing]],
+  predicted_rating = predicted[missing]
+)
+
+print(filled_missing_values)
+```
+```{r}
+movie_means <- df |>
+  group_by(title) |>
+  summarise(
+    mean_rating = mean(rating, na.rm = TRUE),
+    n_ratings = sum(!is.na(rating)),
+    .groups = "drop"
+  ) |>
+  arrange(desc(mean_rating))
+
+print(movie_means)
+```
+Interesting to see that it goes beyond just calculating the mean. 
