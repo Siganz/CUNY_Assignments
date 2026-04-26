@@ -1,0 +1,30 @@
+---
+title: "discussion_11"
+format: html
+---
+
+**Recommender System**
+
+I decided to choose **x.com** for this discussion question. They have a great [github](https://github.com/xai-org/x-algorithm) that provides their open source algorithm.
+
+I don't think we need to perform the design scenario twice, as the platform's goal is to drive user engagement. They are less heavily tied to advertisers opposed to other sites due to the platform's subscriptions, but with more user engagement they can receive more revenue from advertisers. 
+
+**Who are the target users?**  
+
+Daily users of the platform looking for engaging topics to talk and read about. 
+
+**What are the key user goals?**  
+
+Engagement. User's on the site want to engage with topics that are suited to their likes. X's recommender system is trained to drive that positive engagement. 
+
+**How does the recommender system accomplish these goals?**  
+
+*[The recommender system] combines in-network content (from accounts you follow) with out-of-network content (discovered through ML-based retrieval) and ranks everything using a Grok-based transformer model.*
+
+**Reverse Engineering**
+
+The "For You" page is the main hub for the user. The contents of the page are derived from a 50% within network (people you follow and engage with) and 50% out of network (people you don't follow or engage with). The candidates are then filtered by a ranking system, then cleared of duplicates (similar posts), then given to the user. What makes it more interesting than other sites is that they shifted to a transformer based system, which doesn't rely on tagging content but allows the model to intake raw data and figure out meaningful patterns from it. 
+
+**Improvements**
+
+Giving user's more control over their "For You". Recently, X has introduced content filtering, which is a step in the right direction. Since it's Grok based, it would be interesting if the user can tell the AI what it wants to see, similar to a search engine. One issue with X is that it's easy to end up in an echo chamber, so giving users the ability to see productive/counter narratives would be an interesting filter to consider. 
