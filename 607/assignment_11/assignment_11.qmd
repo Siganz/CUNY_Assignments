@@ -84,3 +84,38 @@ scheme <- evaluationScheme(MovieLense100, method = "cross-validation", k = 10, g
     goodRating = 4)
 scheme
 ```
+
+## Codebase
+
+```{r}
+library(tidyverse)
+library(recommenderlab)
+
+df <- read.csv("https://raw.githubusercontent.com/Siganz/CUNY_Assignments/refs/heads/main/607/assignment_11/movie_ratings.csv")
+
+rating_matrix <- df |>
+  select(name, title, rating) |>
+  pivot_wider(names_from = title, values_from = rating, values_fill = NA) |>
+  column_to_rownames("name") |>
+  as.matrix() |>
+  as("realRatingMatrix")
+
+rec <- Recommender(rating_matrix, method = "UBCF")
+
+top_rec <- predict(rec, rating_matrix, n = 5)
+as(top_rec, "list")
+
+tibble(
+  user = rownames(rating_matrix),
+  recommended = as(top_rec, "list")) |>
+  unnest(recommended) |>
+  rename(movie = recommended)
+
+scheme <- evaluationScheme(rating_matrix, method = "cross-validation", k = 4, given = -2, goodRating = 4)
+
+eval_results <- evaluate(scheme, method = "UBCF", type = "topNList", n = 1:5)
+
+avg(eval_results)
+plot(eval_results)
+```
+
