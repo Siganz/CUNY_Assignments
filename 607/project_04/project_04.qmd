@@ -1,0 +1,24 @@
+---
+title: "project_04"
+format: html
+toc: true
+toc-depth: 5
+toc-location: left
+---
+
+## Approach
+
+I set up the files from https://spamassassin.apache.org/old/publiccorpus/?C=M;O=A into my project folder under ./data/ham and ./data/spam by downloading and extracting the most recently modified tar files. So, I'll use these for my spam and not-spam (bool) training data. 
+ 
+I'll create a list for each folder, `list.files("/data/spam")` as spam_files and ``list.files("/data/ham")` as ham_files. I'll use a standard index for an ID (each row is an email), then I'll collapse each file into a single row of data in an str field called text. The tibble will also have a bool column for spam/ham where 0 will be ham and 1 will be spam. 
+
+I'll then create a new df from this tibble where the words are unnested, so ID 1 will be n rows dependent on the word count, filter out common words using anti_join(stop_words), which is a tidytext function to remove common words. Then we will count for the next step of converting it into a data matrix for the prediction model. 
+
+The data matrix will be a wide table where each word is given a column and each row is an email_id along with the associated counts per word per column. To do this I need to use library `tm` which is called the text mining package, which allows us to create a matrix from these words with relative ease. 
+
+I asked AI what type of model would be best suited and it recommend the naiveBayes model, which requires the library `e1071`. So we will use that model with the dtm input and the emails df. 
+
+Afterwards we can test the model by taking some of the older modified files of https://spamassassin.apache.org/old/publiccorpus/?C=M;O=A like the ones with hard_ham or maybe generate a csv of my own with AI generating 20-50 examples of spam/ham emails and see if the model gets it right. 
+
+## Codebase
+
