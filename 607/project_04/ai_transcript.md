@@ -125,3 +125,63 @@ What are the packages `e1071` and `tm` used for?
 `e1071` provides the `naiveBayes()` function.
 
 `tm` supports document-term matrix objects used in text mining. In this code, it helps with the DTM structure created from the word counts.
+
+---
+
+## Q:
+
+Was the original `email_words` table the wrong structure?
+
+## A:
+
+No. The `email_words` table was the long format version of the data. Each row represented one word appearing in one email, along with the count and the email's label. This format was useful for cleaning and counting words, but it was not the final structure needed for modeling.
+
+---
+
+## Q:
+
+Why did the long word-count table need to be converted to wide format?
+
+## A:
+
+Most classification models need one row per email and one column per predictor. After converting to wide format, each email became one row, each word became a column, and each cell showed whether or how often that word appeared in the email. This created the document-term matrix used for prediction.
+
+---
+
+## Q:
+
+What problem happened when creating the wide table?
+
+## A:
+
+Some words had the same names as existing columns, such as `label`. This caused duplicate column-name errors. To fix this, I renamed the response variable to `.label` and specified the identifying columns when widening the table.
+
+---
+
+## Q:
+
+Why did the first Naive Bayes model predict everything as spam?
+
+## A:
+
+The first version used numeric word counts directly. With the `e1071` Naive Bayes function, numeric predictors are treated like continuous variables, which is not ideal for sparse word-count data. Changing the predictors to word presence or absence improved the model.
+
+---
+
+## Q:
+
+What was used to predict whether an email was spam or ham?
+
+## A:
+
+The predictor variables were the word columns from the document-term matrix. The response variable was `.label`, which represented whether the email was spam or ham. The model used word patterns to predict the label.
+
+---
+
+## Q:
+
+What could improve the model?
+
+## A:
+
+Possible improvements include adjusting the spam prediction threshold, changing the minimum word-frequency cutoff, using TF-IDF instead of simple word counts, or trying another classifier such as logistic regression. For this assignment, I kept Naive Bayes because it is simple, interpretable, and appropriate for a basic spam/ham classification project.

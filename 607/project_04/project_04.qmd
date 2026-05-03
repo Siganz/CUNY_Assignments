@@ -22,3 +22,146 @@ Afterwards we can test the model by taking some of the older modified files of h
 
 ## Codebase
 
+```{r}
+library(tidyverse)
+library(tidytext)
+library(tm)
+library(e1071)
+
+spam_files <- list.files("./data/spam", full.names = TRUE) |>
+  discard(~ basename(.x) == "0000.7b1b73cf36cf9dbc3d64e3f2ee2b91f1")
+
+ham_files <- list.files("./data/ham", full.names = TRUE)
+
+set.seed(123)
+
+n_files <- min(length(spam_files), length(ham_files))
+
+spam_files <- sample(spam_files, n_files)
+ham_files  <- sample(ham_files, n_files)
+
+length(spam_files)
+length(ham_files)
+
+```
+
+```{r}
+
+read_email <- function(path) {
+  raw <- readLines(path, warn = FALSE, encoding = "latin1")
+  
+  subject <- raw[str_detect(raw, "^Subject:")] |>
+    str_replace("^Subject:\\s*", "") |>
+    paste(collapse = " ")
+  
+  blank_line <- which(raw == "")[1]
+  
+  body <- if (is.na(blank_line)) {
+    raw
+  } else {
+    raw[(blank_line + 1):length(raw)]
+  }
+  
+  paste(subject, paste(body, collapse = " "))
+}
+
+# build email tibble
+spam_df <- tibble(
+  file = spam_files,
+  label = 1,
+  text = map_chr(file, read_email)
+)
+
+ham_df <- tibble(
+  file = ham_files,
+  label = 0,
+  text = map_chr(file, read_email)
+)
+
+emails <- bind_rows(spam_df, ham_df) |>
+  mutate(email_id = row_number()) |>
+  select(email_id, file, label, text)
+
+emails <- emails[-1, ]
+
+head(emails)
+
+```
+
+```{r}
+email_words <- emails |>
+  select(email_id, label, text) |>
+  unnest_tokens(word, text) |>
+  anti_join(stop_words, by = "word") |>
+  filter(str_detect(word, "^[a-z]+$")) |>
+  count(email_id, label, word, name = "count")
+
+email_words
+
+email_words |>
+  distinct(email_id, label) |>
+  mutate(label_name = if_else(label == 1, "spam", "ham")) |>
+  count(label_name)
+
+top_words <- email_words |>
+  group_by(word) |>
+  summarize(
+    total = sum(count),
+    docs = n_distinct(email_id),
+    .groups = "drop"
+  ) |>
+  filter(docs >= 5) |>
+  slice_max(total, n = 3000)
+
+email_words_small <- email_words |>
+  semi_join(top_words, by = "word")
+
+head(email_words_small)
+
+email_words_small |>
+  distinct(email_id, label) |>
+  mutate(label_name = if_else(label == 1, "spam", "ham")) |>
+  count(label_name)
+
+email_words2 <- email_words_small |>
+  rename(.label = label)
+
+email_dtm <- email_words2 |>
+  pivot_wider(
+    id_cols = c(email_id, .label),
+    names_from = word,
+    values_from = count,
+    values_fill = 0
+  )
+```
+
+```{r}
+x <- email_dtm |>
+  select(-email_id, -.label)
+
+y <- as.factor(email_dtm$.label)
+
+table(y)
+```
+
+```{r}
+train_ids <- sample(seq_len(nrow(email_dtm)), 
+                    size = 0.8 * nrow(email_dtm))
+
+x_train <- x[train_ids, ]
+x_test  <- x[-train_ids, ]
+
+y_train <- y[train_ids]
+y_test  <- y[-train_ids]
+```
+
+```{r}
+model <- naiveBayes(x_train, y_train, laplace = 1)
+
+pred <- predict(model, x_test)
+
+table(predicted = pred, actual = y_test)
+
+mean(pred == y_test)
+```
+0.725 accuracy is not that bad! I didn't use it against new data, but I did withhold 20% of the data within the corpus to be used for predictions. I think I can play around with the probabilities of the prediction, but to be honest, it took me a long time to just complete the project. 
