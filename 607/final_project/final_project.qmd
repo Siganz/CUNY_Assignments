@@ -1,0 +1,504 @@
+---
+title: "final_project"
+format: html
+toc: true
+toc-depth: 5
+toc-location: left
+---
+
+# Original submission
+## Approach
+
+So I'm thinking of using this dataset, which is restaurant inspections from NYC.
+https://data.cityofnewyork.us/Health/DOHMH-New-York-City-Restaurant-Inspection-Results/43nn-pn8j/about_datas
+
+I'm thinking of tying it into this dataset:
+https://business.yelp.com/data/resources/open-dataset/
+
+The question is, does cleanliness/inspection result are correlated with better ratings.
+
+Motivation: It's interesting, I live in NYC and was a waiter so I would like to know if it's statistically worth ordering food from a C inspected site, opposed to an A.
+
+Data Sources: Mentioned already.
+
+Workflow: Idk what that is I'll have to see. I was just going to download the data, clean it up, create tables, join, analyze, visualize, review, report, conclude.
+
+Data Sources: Well one is a CSV, the other is 5 JSON files, there will be relational tables for the JSON and the CSV.
+
+Data Transformation: I'm going to be selecting certain fields, creating relational tables, maybe making some wide/longer.
+
+Analysis: I'll do each analysis above.
+
+Presentation and Code stuff will all be completed.
+
+## Approach Edits
+
+Originally I had planned to use the Yelp dataset, however I was surprised to learn that it didn't include NYC! It had other cities, however these cities did not have an opensource dataset like NYC OpenData and required manually finding each sanitation score via a website, where you search for the restaurant name and then copy and paste the data — wasn't going to do that. 
+
+So, in order to save the primary research question, I was able to find a [NYT article](https://www.nytimes.com/interactive/2025/dining/best-nyc-restaurants.html) that had a list of the Top 100 restaurants in NYC. The list was suitable because it's an acclamation of good restaurants, which would fit the ethos of 5 star rated restaurants. The list was motivated by a post about the top 10 restaurants, so the top 10 in the list is ordinal and the rest are not ordinal, but are just good restaurants sorted alphabetically by name.
+
+So I created a csv out of the list and then used that instead of the Yelp data. 
+
+## Codebase
+
+### Initiation
+
+```{r}
+library(tidyverse)
+library(stringr)
+library(lubridate)
+library(broom)
+```
+
+### Error Fix
+
+There was an issue I had with duplicate names and duplicate locations with the NYT dataset, since it was only a couple I manually added a mapping that I will use to filter the DOHMH dataset, which is a lot simpler than creating a filtering function to figure out which restaurant is the correct one. 
+
+```{r}
+correct_id_map <- tibble(
+  restaurant = c(
+    "court street grocers",
+    "zaab zaab",
+    "laghman express",
+    "lola's"
+  ),
+  correct_id = c(41522735, 50114438, 50144159, 50148516)
+)
+```
+
+### Load and Clean DOHMH dataset
+
+Here I am just reading the csv, cleaning the data fields to make them lower case and correcting the data types. I'm also using the mapping I made in the previous section's variable to filter out the specific ID's for that corresponding restaurant name. 
+
+**NOTE:**
+
+The dataset was too big to put on Github, I only realized this when I was uploading it. So, I put a check that if the data doesn't exist in the directory this file is ran, then it will download the data from NYC OpenData directly. It's 130mb so it could take some time!
+
+```{r}
+dohmh_raw <- read_csv(
+  "DOHMH_New_York_City_Restaurant_Inspection_Results_20260506.csv.gz",
+  show_col_types = FALSE
+)
+
+dohmh_clean <- dohmh_raw |>
+  select(
+    id = CAMIS,
+    restaurant = DBA,
+    boro = BORO,
+    building = BUILDING,
+    street = STREET,
+    action = ACTION,
+    violation_code = `VIOLATION CODE`,
+    violation_description = `VIOLATION DESCRIPTION`,
+    critical = `CRITICAL FLAG`,
+    score = SCORE,
+    grade = GRADE,
+    inspection_type = `INSPECTION TYPE`,
+    inspection_date = `INSPECTION DATE`,
+    recorded_date = `RECORD DATE`,
+    bbl = BBL,
+    x = Latitude,
+    y = Longitude,
+    location = Location
+  ) |>
+  mutate(
+    restaurant = str_to_lower(str_trim(restaurant)),
+    grade = na_if(str_trim(grade), ""),
+    inspection_date = mdy(inspection_date),
+    recorded_date = mdy(recorded_date)
+  ) |>
+  left_join(correct_id_map, by = "restaurant") |>
+  filter(is.na(correct_id) | id == correct_id) |>
+  select(-correct_id) |>
+  as_tibble()
+
+```
+
+### Calculating most recent grade
+
+Here I am finding the current grade of every restaurant. The reasoning is that recent inspections don't always have to include an inspection grade, meaning the grade is '' in the dataset. The reasoning is that if there's no update to the grade, it will use the previous grade. So, you have to go through previous inspections and find the grade the restaurant was given. 
+
+```{r}
+dohmh_current_grade <- dohmh_clean |>
+  arrange(id, desc(inspection_date), desc(recorded_date)) |>
+  group_by(id) |>
+  summarise(
+    current_grade = if_else(
+      any(!is.na(grade)),
+      first(grade[!is.na(grade)]),
+      NA_character_
+    ),
+    current_grade_date = if_else(
+      any(!is.na(grade)),
+      first(inspection_date[!is.na(grade)]),
+      as.Date(NA)
+    ),
+    .groups = "drop"
+  )
+```
+
+### Calculating most recent inspections
+
+Here I am creating a df to find the most recent inspections for each restaurant. There can be multiple inspections per visit, so I'm filtering by max inspection date and then returning the results. 
+
+```{r}
+dohmh_latest_inspections <- dohmh_clean |>
+  group_by(id) |>
+  filter(inspection_date == max(inspection_date, na.rm = TRUE)) |>
+  ungroup() |>
+  left_join(dohmh_current_grade, by = "id")
+glimpse(dohmh_latest_inspections)
+```
+
+### Calculating summary of recent inspections
+
+Here I am taking the previous df (latest_inspections), summarizing by all fields (sans inspections) and then calculating some violation metrics that will be used for the analysis later on. I'm also renaming the grade column as a way to ensure that we know that the current grade and current grade date in case grade is brought over via a join or something. 
+
+```{r}
+dohmh_latest_summary <- dohmh_latest_inspections |>
+  group_by(
+    id, restaurant, boro, building, street,
+    inspection_date, recorded_date, current_grade, current_grade_date,
+    bbl, x, y, location
+  ) |>
+  summarise(
+    critical_violations = sum(critical == "Critical", na.rm = TRUE),
+    noncritical_violations = sum(critical == "Not Critical", na.rm = TRUE),
+    total_violations = n(),
+    violation_codes = str_c(sort(unique(na.omit(violation_code))), collapse = "; "),
+    .groups = "drop"
+  ) |>
+  rename(
+    grade = current_grade,
+    grade_date = current_grade_date
+  )
+```
+
+### Cleaning NYT data
+
+Here I am cleaning the NYT data (even though I created it). I simply copy pasted into AI and had it return it as a csv, without much direction (on purpose). 
+
+```{r}
+nyt_clean <- read_csv("nyt_top_100_nyc_restaurants_2025.csv",
+                      show_col_types = FALSE) |>
+  transmute(
+    rank = Rank,
+    restaurant = str_to_lower(str_trim(`Restaurant Name`)),
+    neighborhood = str_to_lower(str_trim(Neighborhood)),
+    cuisine = str_to_lower(str_trim(`Cuisine / Style`)),
+    nyt_group = if_else(rank <= 10, "nyt_top_10", "nyt")
+  )
+
+matched_df <- nyt_clean |>
+  left_join(dohmh_latest_summary, by = "restaurant") |>
+  arrange(rank, id) |>
+  as_tibble()
+
+matched_df_all <- matched_df
+
+matched_df_inspected <- matched_df |>
+  filter(!is.na(id))
+
+```
+
+### Creating analysis DF
+
+Here I am setting a seed because I'm going to randomize a slice of the data from the dohmh dataset, because I want to establish a base/normal representation of the data to be a control to the NYT restaurants when I perform my analysis. With the new restaurants added, I create a categorical variable to describe whether the restaurant is in the NYT top 10, in the NYT 100, or not. I am then appending the two dfs and then creating another df with just the unique IDs (which I will use later on.)
+
+```{r}
+set.seed(123)
+
+nyt_ids <- matched_df_inspected |>
+  distinct(id)
+
+non_nyt_pool <- dohmh_latest_summary |>
+  filter(
+    !id %in% nyt_ids,
+    grade %in% c("A", "B", "C")
+  )
+
+non_nyt_sample <- non_nyt_pool |>
+  slice_sample(n = 10000) |>
+  mutate(nyt_group = "non_nyt")
+
+nyt_sample <- matched_df_inspected |>
+  mutate(
+    nyt_group = if_else(rank <= 10, "nyt_top_10", "nyt")
+  )
+
+analysis_df <- bind_rows(
+  nyt_sample,
+  non_nyt_sample
+)
+
+analysis_ids <- analysis_df |>
+  distinct(id)
+
+```
+
+### Finalizing analysis df
+
+Here we are calculating the severity scores, which are created from the critical column within the dohmh data and the ordinals are taken from the dohmh data dictionary, which lists three criteria for the critical column. We are then doing a summarization of that severity for each restaurant's latest inspections (n inspections). We are then joining that df back into the analysis df to then create our final df product for analysis. 
+
+```{r}
+analysis_latest_inspections <- dohmh_latest_inspections |>
+  semi_join(analysis_ids, by = "id")
+
+latest_severity <- analysis_latest_inspections |>
+  mutate(
+    severity_score = case_when(
+      critical == "Critical" ~ 2L,
+      critical == "Not Critical" ~ 1L,
+      critical == "Not Applicable" ~ 0L,
+      TRUE ~ NA_integer_
+    )
+  ) |>
+  group_by(id) |>
+  summarise(
+    severity_total = sum(severity_score, na.rm = TRUE),
+    severity_mean = mean(severity_score, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+df <- analysis_df |>
+  left_join(latest_severity, by = "id") |>
+  mutate(
+    across(
+      c(inspection_date, grade_date, recorded_date),
+      as.Date
+    ),
+    nyt_group = factor(
+      nyt_group,
+      levels = c("non_nyt", "nyt", "nyt_top_10")
+    ),
+    nyt_binary = factor(
+      if_else(nyt_group == "non_nyt", "non_nyt", "nyt"),
+      levels = c("non_nyt", "nyt")
+    ),
+    grade = factor(grade, levels = c("A", "B", "C", "N", "P", "Z")),
+    clean_score = -total_violations,
+    has_a_grade = grade == "A"
+  )
+
+```
+
+### Final df
+
+Now with the final df created we can view and discuss the fields:
+
+```{r}
+glimpse(df)
+```
+
+**df**
+
+- `rank`: NYT Top 100 ranking. This is only available for NYT restaurants; non-NYT restaurants have missing rank values.
+- `restaurant`: Cleaned restaurant name, lowercased and trimmed.
+- `neighborhood`: NYT neighborhood label. This is only available for NYT restaurants.
+- `cuisine`: NYT cuisine/style label. This is only available for NYT restaurants.
+- `nyt_group`: Restaurant group used for comparison:
+  - `nyt_top_10`: NYT-ranked restaurants 1–10
+  - `nyt`: NYT-ranked restaurants outside the top 10
+  - `non_nyt`: randomly sampled non-NYT restaurants from DOHMH
+- `id`: DOHMH CAMIS restaurant identifier.
+- `boro`: NYC borough from DOHMH.
+- `building`: Building number from DOHMH.
+- `street`: Street name from DOHMH.
+- `inspection_date`: Most recent DOHMH inspection date used for the restaurant-level summary.
+- `recorded_date`: DOHMH record date.
+- `grade`: Most recent available DOHMH grade for the restaurant.
+- `grade_date`: Date associated with the most recent available DOHMH grade.
+- `bbl`: Borough-block-lot identifier.
+- `x`: Latitude.
+- `y`: Longitude.
+- `location`: DOHMH point geometry as text.
+- `critical_violations`: Count of critical violations on the most recent inspection.
+- `noncritical_violations`: Count of non-critical violations on the most recent inspection.
+- `total_violations`: Total violation count on the most recent inspection.
+- `violation_codes`: Semicolon-separated list of violation codes from the most recent inspection.
+- `severity_total`: Sum of violation severity scores on the most recent inspection, where Critical = 2, Not Critical = 1, and Not Applicable = 0.
+- `severity_mean`: Average violation severity score on the most recent inspection.
+
+## Analysis
+
+### Hypotheses
+
+The main question is whether NYT-recognized restaurants have different health inspection outcomes than non-NYT restaurants.
+
+For inspection grades:
+
+- **Null hypothesis:** NYT and non-NYT restaurants have the same proportion of A grades.
+- **Alternative hypothesis:** NYT and non-NYT restaurants have different proportions of A grades.
+
+For inspection outcomes, I tested three related hypotheses:
+
+1. **Total violations**
+
+   - **Null hypothesis:** NYT and non-NYT restaurants have the same distribution of total violation counts.
+   - **Alternative hypothesis:** NYT and non-NYT restaurants have different distributions of total violation counts.
+
+2. **Critical violations**
+
+   - **Null hypothesis:** NYT and non-NYT restaurants have the same distribution of critical violation counts.
+   - **Alternative hypothesis:** NYT and non-NYT restaurants have different distributions of critical violation counts.
+
+3. **Severity scores**
+
+   - **Null hypothesis:** NYT and non-NYT restaurants have the same distribution of severity scores.
+   - **Alternative hypothesis:** NYT and non-NYT restaurants have different distributions of severity scores.
+
+### NYT vs Non_NYT: Summarization
+
+```{r}
+
+analysis_summary <- df |>
+  group_by(nyt_binary) |>
+  summarise(
+    n = n(),
+    pct_a_grade = mean(grade == "A", na.rm = TRUE) * 100,
+    mean_total_violations = mean(total_violations, na.rm = TRUE),
+    median_total_violations = median(total_violations, na.rm = TRUE),
+    mean_critical_violations = mean(critical_violations, na.rm = TRUE),
+    median_critical_violations = median(critical_violations, na.rm = TRUE),
+    mean_severity_total = mean(severity_total, na.rm = TRUE),
+    median_severity_total = median(severity_total, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(across(-c(nyt_binary, n), ~ round(.x, 2)))
+
+analysis_summary |> print(width = Inf)
+```
+**Non-NYT restaurants**
+
+A grade: 89.8%
+Mean total violations: 2.68
+Mean critical violations: 1.26
+Mean severity: 3.90
+
+**NYT restaurant**
+
+A grade: 82.9%
+Mean total violations: 2.74
+Mean critical violations: 1.52
+Mean severity: 4.23
+
+NYT restaurants have a lower A grade, higher total violations, higher critical violations, and higher severity than non-NYT restaurants. This suggests that NYT restaurants did not have better inspection outcomes in this sample.
+
+### NYT vs Non_NYT: Grade
+
+Now we will test the null hypothesis to see if the grade difference is statistically significant. 
+
+```{r}
+grade_binary_table <- df |>
+  filter(!is.na(grade)) |>
+  mutate(a_grade = if_else(grade == "A", "A", "Not A")) |>
+  count(nyt_binary, a_grade) |>
+  pivot_wider(
+    names_from = a_grade,
+    values_from = n,
+    values_fill = 0
+  )
+
+grade_binary_table
+
+grade_binary_matrix <- grade_binary_table |>
+  select(A, `Not A`) |>
+  as.matrix()
+
+rownames(grade_binary_matrix) <- grade_binary_table$nyt_binary
+
+grade_chisq <- chisq.test(grade_binary_matrix)
+
+grade_chisq
+```
+Although NYT restaurants had a lower A-grade rate than non-NYT restaurants, 82.9% compared with 89.8%, this difference was not statistically significant at the 0.05 level.
+
+```{r}
+df |>
+  filter(!is.na(grade)) |>
+  count(nyt_group, grade) |>
+  group_by(nyt_group) |>
+  mutate(prop = n / sum(n)) |>
+  ggplot(aes(x = nyt_group, y = prop, fill = grade)) +
+  geom_col(position = "fill") +
+  labs(
+    title = "Inspection grade distribution by restaurant group",
+    x = "Restaurant group",
+    y = "Proportion",
+    fill = "Grade"
+  ) +
+  theme_minimal()
+
+```
+### NYT vs Non_NYT: Inspection Violations 
+
+For inspection outcomes, I used Wilcoxon rank sum tests to compare NYT and non-NYT restaurants.
+
+```{r}
+# Wilcoxon rank sum tests
+total_violations_test <- wilcox.test(
+  total_violations ~ nyt_binary,
+  data = df
+)
+
+critical_violations_test <- wilcox.test(
+  critical_violations ~ nyt_binary,
+  data = df
+)
+
+severity_total_test <- wilcox.test(
+  severity_total ~ nyt_binary,
+  data = df
+)
+
+total_violations_test
+critical_violations_test
+severity_total_test
+```
+
+
+**Total Violations**
+The test was not statistically significant, W = 393565, p = 0.300. Therefore, I fail to reject the null hypothesis. There is not enough evidence to conclude that NYT and non-NYT restaurants differ in total violation counts.
+
+**Critical Violations** 
+The test was statistically significant, W = 357093, p = 0.009. Therefore, I reject the null hypothesis. NYT restaurants had more critical violations on average than non-NYT restaurants.
+
+**Severity Scores**
+The test was also statistically significant, W = 368117, p = 0.046. Therefore, I reject the null hypothesis. NYT restaurants had higher severity scores on average than non-NYT restaurants.
+
+
+```{r}
+inspection_plot_df <- analysis_summary |>
+  select(
+    nyt_binary,
+    mean_total_violations,
+    mean_critical_violations,
+    mean_severity_total
+  ) |>
+  pivot_longer(
+    cols = starts_with("mean"),
+    names_to = "metric",
+    values_to = "mean_value"
+  ) |>
+  mutate(
+    metric = recode(
+      metric,
+      mean_total_violations = "Total violations",
+      mean_critical_violations = "Critical violations",
+      mean_severity_total = "Severity score"
+    )
+  )
+
+ggplot(inspection_plot_df, aes(x = metric, y = mean_value, fill = nyt_binary)) +
+  geom_col(position = "dodge") +
+  labs(
+    title = "Average inspection outcomes by restaurant group",
+    x = "Inspection outcome",
+    y = "Mean value",
+    fill = "Restaurant group"
+  ) +
+  theme_minimal()
+```
+## Summary
+
+Overall, the results do not support the idea that NYT-recognized restaurants have better health inspection outcomes. A-grade rates and total violations were not significantly different, while critical violations and severity scores were significantly higher for NYT restaurants. 
