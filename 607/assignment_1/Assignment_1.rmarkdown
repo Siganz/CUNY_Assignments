@@ -54,7 +54,7 @@ df[1,]
 str(df)
 ```
 
-Interesting that instead of using int/bool they used character. I would like to change that, while also creating vectors for the columns with different names.
+Interesting that instead of using int/bool they used character. I would like to change that, while also creating vectors for the columns with different names. 
 
 ```{r}
 # cols vector for field selection
@@ -169,7 +169,7 @@ str(df2)
 
 ```
 
-I would like to check the unique's of primary color, which I could use for (col in df2\$primarycolor), but I'll just use color_cols since I created it earlier.
+I would like to check the unique's of primary color, which I could use for (col in df2$primarycolor), but I'll just use color_cols since I created it earlier.
 
 ```{r}
 # should return three lines, last two should just be NULL
@@ -203,8 +203,7 @@ df2$above_ground_measurement <- as.numeric(df2$above_ground_measurement)
 str(df2$above_ground_measurement)
 ```
 
-Checking on X/Y to see if they have any non numeric symbols:
-
+Checking on X/Y to see if they have any non numeric symbols: 
 ```{r}
 bad_rows <- which(grepl("^$|[^0-9.-]", df2$x))
 bad_rows
@@ -238,11 +237,9 @@ ggplot(df2, aes(x = primary_color, fill = primary_color)) +
   theme(legend.position = "none")
 
 ```
-
 This is a count of all observations against primary fur color, you'll see that Gray's are more populous than any other primary fur color (if we just look at this census data).
 
 **Squirrel Behaviors**
-
 ```{r}
 rates <- colSums(df2[bool_cols]) / nrow(df2)
 
@@ -265,10 +262,10 @@ ggplot(plot_df, aes(x = behavior, y = proportion, fill = behavior)) +
 
 ```
 
-We can see that the largest observed activity was foraging, by a large magin. It seems like climbing, eating, and running are nearly identitical with a difference of less than 5%, with chasing the lowest, which is less than 10%.
+We can see that the largest observed activity was foraging, by a large magin. It seems like climbing, eating, and running are nearly identitical with a difference of less than 5%, with chasing the lowest, which is less than 10%.  
+
 
 **Summary Table for All Behaviors**
-
 ```{r}
 # Create a summary table for all behaviors
 do.call(rbind, lapply(bool_cols, function(col) {
@@ -283,11 +280,10 @@ do.call(rbind, lapply(bool_cols, function(col) {
     )
 }))
 ```
-
 This is a simple table that was generated to see the quantities of records with their column values and the sum of the logic values.
 
-**Share of Total Activity by Fur Color**
 
+**Share of Total Activity by Fur Color**
 ```{r}
 
 counts <- aggregate(
@@ -312,11 +308,10 @@ ggplot(counts, aes(x = primary_color, y = percent, fill = primary_color)) +
 
 
 ```
+This graph outlines the percentage of recorded activity between primary fur classes. Gray absolutely dominates, but this is mainly due to the amount of records. I created this and left it here, because it could be interpreted incorrectly as Gray's being more active than the other colors. 
 
-This graph outlines the percentage of recorded activity between primary fur classes. Gray absolutely dominates, but this is mainly due to the amount of records. I created this and left it here, because it could be interpreted incorrectly as Gray's being more active than the other colors.
 
 **Behavior Rates by Primary Fur Color**
-
 ```{r}
 # Calculate activity rates for all behaviors
 activity_rates <- do.call(rbind, lapply(bool_cols, function(col) {
@@ -347,7 +342,6 @@ ggplot(activity_rates, aes(x = primary_color, y = activity_rate, fill = primary_
   theme(legend.position = "none")
 
 ```
-
 This graph is interesting because it visually shows that squirrels, regardless of their fur color, seem to have very similar activity rates. This is true of everything except foraging, so for that we can do this:
 
 ```{r}
@@ -360,7 +354,7 @@ behavior_dispersion <- aggregate(
 behavior_dispersion
 ```
 
-This behavior_dispersion shows the standard deviation of activity_rate (which is grouped by primary_color) to behavior. Foraging has 0.05 SD (5 percentage points), which has the strongest association with fur color than all other types of behaviors.
+This behavior_dispersion shows the standard deviation of activity_rate (which is grouped by primary_color) to behavior. Foraging has 0.05 SD (5 percentage points), which has the strongest association with fur color than all other types of behaviors. 
 
 **Average Activity Rate by Primary Fur Color**
 
@@ -384,12 +378,10 @@ ggplot(rates, aes(x = primary_color, y = activity, fill = primary_color)) +
   theme(legend.position = "none")
 
 ```
-
 This one is pretty funny, I actually spent a good 30 minutes trying to figure out if my data was wrong, like if FALSE was somehow being aggregated, but it just turns out all the squirrels were very active!
 
 ### Final Thoughts
-
-Recommendations for the data would be to explore it further, like with more statistical analysis. I think the x/y coordinates would be interesting to see where in the park different color types of squirrels were recorded, and what parts of the park were there the most activity. A GIS map would be a great tool to help visualize this further.
+Recommendations for the data would be to explore it further, like with more statistical analysis. I think the x/y coordinates would be interesting to see where in the park different color types of squirrels were recorded, and what parts of the park were there the most activity. A GIS map would be a great tool to help visualize this further. 
 
 ## Video
 
@@ -513,3 +505,4 @@ leaflet(pluto_wgs84) |>
     weight = 0.2,
   )
 ```
+
