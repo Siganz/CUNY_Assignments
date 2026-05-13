@@ -421,9 +421,19 @@ df |>
   mutate(prop = n / sum(n)) |>
   ggplot(aes(x = nyt_group, y = prop, fill = grade)) +
   geom_col(position = "fill") +
+  scale_fill_manual(
+    values = c(
+      "A" = "#0D9488",
+      "B" = "#115E59",
+      "C" = "#94A3B8",
+      "N" = "#CBD5E1",
+      "P" = "#E2E8F0",
+      "Z" = "#64748B"
+    )
+  ) +
   labs(
-    title = "Inspection grade distribution by restaurant group",
-    x = "Restaurant group",
+    title = "Inspection Grade Distribution by Restaurant Group",
+    x = "Restaurant Group",
     y = "Proportion",
     fill = "Grade"
   ) +
@@ -466,8 +476,8 @@ The test was statistically significant, W = 357093, p = 0.009. Therefore, I reje
 **Severity Scores**
 The test was also statistically significant, W = 368117, p = 0.046. Therefore, I reject the null hypothesis. NYT restaurants had higher severity scores on average than non-NYT restaurants.
 
-
 ```{r}
+
 inspection_plot_df <- analysis_summary |>
   select(
     nyt_binary,
@@ -491,11 +501,21 @@ inspection_plot_df <- analysis_summary |>
 
 ggplot(inspection_plot_df, aes(x = metric, y = mean_value, fill = nyt_binary)) +
   geom_col(position = "dodge") +
+  scale_fill_manual(
+    values = c(
+      "non_nyt" = "#115E59",
+      "nyt" = "#0D9488"
+    ),
+    labels = c(
+      "non_nyt" = "Non-NYT",
+      "nyt" = "NYT"
+    )
+  ) +
   labs(
-    title = "Average inspection outcomes by restaurant group",
-    x = "Inspection outcome",
-    y = "Mean value",
-    fill = "Restaurant group"
+    title = "Average Inspection Outcomes by Restaurant Group",
+    x = "Inspection Outcome",
+    y = "Mean Value",
+    fill = "Restaurant Group"
   ) +
   theme_minimal()
 ```

@@ -1,0 +1,22 @@
+/*-- scss:defaults --*/
+
+$presentation-font-size-root: 30px;
+$presentation-heading-color: #444;
+$body-color: #666;
+$link-color: #2c7fb8;
+
+/*-- scss:rules --*/
+
+.reveal h2 {
+  font-weight: 600;
+}
+
+.reveal p,
+.reveal li {
+  line-height: 1.35;
+}
+
+.reveal pre code {
+  font-size: 0.75em;
+}
+

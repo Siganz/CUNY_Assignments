@@ -1,0 +1,471 @@
+---
+title: "Weekend Calories: Dietary Intake Patterns in NHANES"
+format:
+  revealjs:
+    theme: [simple, custom.scss]
+    slide-number: true
+execute:
+  echo: false
+---
+
+## Abstract
+
+This project examines whether reported total daily calorie intake differs between weekday and weekend dietary recalls among **National Health and Nutrition Examination Survey (NHANES)** participants. I used NHANES August 2021–August 2023 Day 1 dietary recall data. 
+
+The dependent variable is total daily energy intake in kilocalories, and the main independent variable is whether the recall occurred on a weekday or weekend. I also included special diet status as an additional explanatory variable. I compared groups using summary statistics, visualizations, a two-sample t-test, a permutation test, and a survey-weighted regression model. 
+
+Weekend recalls showed slightly higher average calorie intake than weekday recalls, and this difference remained after accounting for special diet status and NHANES survey design. However, the size of the difference was small relative to the overall variation in calorie intake.
+
+## Overview
+
+- Data: NHANES August 2021–August 2023 Day 1 dietary recall
+- Cases: 6,691 observations
+- Outcome: total daily calorie intake
+- Main predictor: weekday vs. weekend recall
+- Additional predictor: special diet status
+- Methods: summary statistics, visualizations, t-test, permutation test, regression
+
+## Hypothesis
+
+$$
+H_0: \mu_{\text{weekday}} = \mu_{\text{weekend}}
+$$
+**Null Hypothesis**: There is no difference in average total daily calorie intake between weekday and weekend recalls.
+
+
+$$
+H_A: \mu_{\text{weekday}} \ne \mu_{\text{weekend}}
+$$
+**Alternative Hypothesis**: There is a difference in average total daily calorie intake between weekday and weekend recalls.
+
+
+## Initialization
+```{r}
+#| echo: true
+
+library(tidyverse)
+library(infer)
+library(haven)
+```
+- `tidyverse`: Used for data cleaning, transformation, summaries, and plotting.
+- `infer`: Used for simulation-based inference and hypothesis testing.
+- `haven`: Used to read NHANES `.xpt` data files.
+
+## Data prep/filtering
+```{r}
+#| echo: true
+df <- read_xpt("https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/DR1TOT_L.xpt") |>
+  select(
+    day_of_week = DR1DAY,
+    recall_status = DR1DRSTZ,
+    total_kcal = DR1TKCAL,
+    special_diet_raw = DRQSDIET
+  ) |>
+  filter(
+    recall_status == 1,
+    day_of_week %in% 1:7,
+    !is.na(total_kcal),
+    special_diet_raw %in% c(1, 2)
+  ) |>
+  mutate(
+    weekend = ifelse(day_of_week %in% c(1, 7), "weekend", "weekday"),
+    weekend = factor(weekend, levels = c("weekday", "weekend")),
+    special_diet = ifelse(special_diet_raw == 1, "yes", "no"),
+    special_diet = factor(special_diet, levels = c("no", "yes"))
+  )
+```
+## Column Descriptions
+- `day_of_week`: Numeric NHANES code for the day the dietary recall was collected.
+- `recall_status`: Indicates whether the dietary recall was reliable and complete.
+- `total_kcal`: Total reported daily energy intake in kilocalories.
+- `special_diet_raw`: Original NHANES code for whether the participant reported being on a special diet.
+- `weekend`: Cleaned variable classifying the recall day as `weekday` or `weekend`.
+- `special_diet`: Cleaned variable classifying special diet status as `yes` or `no`.
+
+```{r}
+df_means <- df |>
+  group_by(weekend) |>
+  summarise(
+    n = n(),
+    mean_kcal = mean(total_kcal, na.rm = TRUE),
+    sd_kcal = sd(total_kcal, na.rm = TRUE),
+    se_kcal = sd_kcal / sqrt(n),
+    lower = mean_kcal - 1.96 * se_kcal,
+    upper = mean_kcal + 1.96 * se_kcal,
+    median_kcal = median(total_kcal, na.rm = TRUE),
+    iqr_kcal = IQR(total_kcal, na.rm = TRUE),
+    min_kcal = min(total_kcal, na.rm = TRUE),
+    max_kcal = max(total_kcal, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+## Summary Statistics
+
+```{r}
+ggplot(df_means, aes(x = weekend, y = mean_kcal)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.15) +
+  labs(
+    title = "Mean Calorie Intake by Recall Day",
+    x = "Recall Day",
+    y = "Mean total kcal"
+  )
+
+df_means
+```
+
+## Summary Statistics: Explanation
+
+From the summary statistics on total_kcal we can see that the weekend does have a higher mean, standard deviation, and median than the weekdays.
+
+<br>
+
+**Weekday mean:** 1909.96 kcal
+
+**Weekend mean:** 1961.66 kcal
+
+**Difference:** about 51.7 kcal higher on weekends
+
+## Summary Statistics: Special Diet
+
+```{r}
+#| echo: true
+
+df |>
+  group_by(weekend, special_diet) |>
+  summarize(
+    n = n(),
+    mean_kcal = mean(total_kcal),
+    sd_kcal = sd(total_kcal),
+    median_kcal = median(total_kcal),
+    .groups = "drop"
+  )
+```
+## Summary Statistics: Special Diet
+
+Participants not on a special diet reported higher average calorie intake in both groups:
+
+- Weekday, no special diet: 1,925 kcal
+- Weekday, special diet: 1,806 kcal
+- Weekend, no special diet: 1,992 kcal
+- Weekend, special diet: 1,768 kcal
+
+The highest average intake was among weekend recalls for participants not on a special diet.
+
+The lowest average intake was among weekend recalls for participants on a special diet.
+
+## Histogram
+```{r}
+ggplot(df, aes(x = total_kcal)) +
+  geom_histogram(bins = 30) +
+  labs(
+    title = "Distribution of Total Daily Energy Intake",
+    x = "Total Daily Energy Intake (kcal)",
+    y = "Count"
+  )
+```
+
+## Histogram Explanation
+
+- Shape: right-skewed
+- Modality: unimodal
+- Tail: long right tail
+- Center: around 1,800–2,000 kcal
+- Spread: wide, with some extreme high values
+
+## Boxplot
+```{r}
+# Visualize the data as is
+ggplot(df, aes(x = factor(day_of_week), y = total_kcal)) +
+  geom_boxplot() +
+  labs(
+    title = "Total Daily Energy Intake by Day of the Week",
+    x = "Day of the Week",
+    y = "Total Daily Energy Intake (kcal)"
+  )
+```
+
+## Boxplot Clean
+
+```{r}
+ggplot(df, aes(x = factor(day_of_week), y = total_kcal)) +
+  geom_boxplot() +
+  coord_cartesian(ylim = c(0, 5000)) +
+  labs(
+    title = "Total Daily Energy Intake by Day of the Week",
+    x = "Day of the Week",
+    y = "Total Daily Energy Intake (kcal)"
+  )
+```
+
+## Boxplot Explanation
+
+Saturday and Sunday show slightly wider calorie distributions than many weekdays.
+
+Saturday especially appears to have a larger spread, with a wider IQR and more high intake values.
+
+However, the medians across all seven days are fairly similar, so the main difference seems to be in variability rather than a large shift in typical intake.
+
+## Two-Sample t-Test
+
+```{r}
+#| echo: True
+t.test(total_kcal ~ weekend, data = df)
+```
+## Two-Sample t-Test 
+
+The Welch two-sample t-test found a statistically significant difference in mean calorie intake between weekday and weekend recalls.
+
+Weekend recalls averaged about 52 kcal higher than weekday recalls.
+
+- Weekday mean: 1,910 kcal
+- Weekend mean: 1,962 kcal
+- Difference: about 52 kcal
+- p-value: 0.046
+- 95% CI: 0.83 to 102.58 kcal higher on weekends
+
+Because the p-value is below 0.05, I reject the null hypothesis. However, the difference is small in practical terms.
+
+## Two Sided Permutation Test
+
+```{r}
+#| echo: True
+set.seed(123)
+
+obs_diff <- df |>
+  specify(total_kcal ~ weekend) |>
+  calculate(stat = "diff in means", order = c("weekend", "weekday"))
+
+null_dist <- df |>
+  specify(total_kcal ~ weekend) |>
+  hypothesize(null = "independence") |>
+  generate(reps = 10000, type = "permute") |>
+  calculate(stat = "diff in means", order = c("weekend", "weekday"))
+
+null_dist |>
+  get_p_value(obs_stat = obs_diff, direction = "two_sided")
+
+```
+
+## T-Test & Two Sided Permutation Test
+
+Both tests gave p-values below 0.05, so the conclusion was consistent: there is evidence of a difference in mean calorie intake between weekday and weekend recalls.
+
+## Special Diet: Plot
+```{r}
+ggplot(df, aes(x = weekend, y = total_kcal, fill = special_diet)) +
+  geom_boxplot() +
+  coord_cartesian(ylim = c(0, 5000)) +
+  labs(
+    title = "Calories by Recall Day and Special Diet",
+    x = "Recall Day",
+    y = "Total kcal",
+    fill = "Special diet"
+  )
+```
+
+
+## Special Diet: Multiple Linear Regression
+```{r}
+#| echo: True
+m1 <- lm(total_kcal ~ weekend + special_diet, data = df)
+summary(m1)
+```
+- Weekend effect: +53 kcal, p = 0.034
+- Special diet effect: −147 kcal, p < 0.001
+- R² = 0.004
+
+
+## Distribution of Residuals
+
+```{r}
+ggplot(m1, aes(x = .resid)) +
+  geom_histogram(bins = 40) +
+  labs(
+    title = "Distribution of Residuals",
+    x = "Residuals",
+    y = "Count"
+  )
+```
+The residuals are centered near 0 but strongly right-skewed, with several large positive residuals. This means the model underpredicts calorie intake for some high-intake participants.
+
+## Regression Diagnostics
+
+```{r}
+ggplot(m1, aes(sample = .resid)) +
+  stat_qq(alpha = 0.25) +
+  stat_qq_line() +
+  labs(
+    title = "Normal Q-Q Plot of Residuals",
+    x = "Theoretical quantiles",
+    y = "Sample quantiles"
+  )
+```
+Residuals are not perfectly normal, especially in the upper tail. This reflects high-calorie outliers and the right-skewed shape of dietary intake.
+
+## Conclusion
+
+Participants reported significantly higher mean energy intake on weekend days (1962 kcal) compared with weekdays (1910 kcal; difference = 52 kcal, permutation p = 0.039). This difference remained after adjustment for special diet (adjusted difference = 53 kcal, p = 0.034).
+
+**Layman:** People eat more calories on the weekends than during the week — roughly 50 extra calories per day on average."
+
+**Limitation:** Because calorie intake was highly variable and right-skewed, the regression model should be interpreted cautiously.
+
+## Extra
+
+National Health and Nutrition Examination Survey (NHANES) uses a complex, multistage, stratified, cluster sampling design. Because of this, analyses should use survey weights, strata, and cluster variables to produce more accurate population estimates.
+
+- `weight_day1`: the NHANES Day 1 dietary recall weight, used to make dietary intake estimates more representative of the U.S. population
+- `SDMVPSU`: the primary sampling unit, or cluster, used in the NHANES sample design.
+- `SDMVSTRA`: the survey stratum, or sampling group, used to organize the sample design.
+
+## Code
+
+The `DEMO_L` file contains NHANES demographic and survey design variables, including the strata and cluster variables needed for survey-weighted analysis.
+
+```{r}
+#| echo: True
+library(survey)
+
+diet <- read_xpt("https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/DR1TOT_L.xpt")
+
+demo <- read_xpt("https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/DEMO_L.xpt")
+
+df_svy <- diet |>
+  select(
+    SEQN,
+    day_of_week = DR1DAY,
+    recall_status = DR1DRSTZ,
+    total_kcal = DR1TKCAL,
+    special_diet_raw = DRQSDIET,
+    weight_day1 = WTDRD1
+  ) |>
+  left_join(
+    demo |> select(SEQN, SDMVSTRA, SDMVPSU),
+    by = "SEQN"
+  ) |>
+  filter(
+    recall_status == 1,
+    day_of_week %in% 1:7,
+    !is.na(total_kcal),
+    special_diet_raw %in% c(1, 2),
+    weight_day1 > 0
+  ) |>
+  mutate(
+    weekend = factor(
+      ifelse(day_of_week %in% c(1, 7), "weekend", "weekday"),
+      levels = c("weekday", "weekend")
+    ),
+    special_diet = factor(
+      ifelse(special_diet_raw == 1, "yes", "no"),
+      levels = c("no", "yes")
+    )
+  )
+```
+
+## Survey-Weighted Analysis 
+
+The `svydesign()` function creates a survey design object so R can account for NHANES weights, strata, and clusters when estimating means or fitting regression models.
+
+```{r}
+#| echo: True
+nhanes_design <- svydesign(
+  ids = ~SDMVPSU,
+  strata = ~SDMVSTRA,
+  weights = ~weight_day1,
+  nest = TRUE,
+  data = df_svy
+)
+```
+
+## Survey Weighted Statistics 
+`svyby()` calculates a survey-weighted statistic separately by group.
+
+```{r}
+#| echo: True
+svyby(
+  ~total_kcal,
+  ~weekend,
+  nhanes_design,
+  svymean,
+  na.rm = TRUE
+)
+```
+## Survey Weighted Statistics: Code
+
+```{r}
+weighted_means <- svyby(
+  ~total_kcal,
+  ~weekend,
+  nhanes_design,
+  svymean,
+  na.rm = TRUE
+)
+
+weighted_means_df <- weighted_means |>
+  as_tibble() |>
+  mutate(
+    lower = total_kcal - 1.96 * se,
+    upper = total_kcal + 1.96 * se
+  )
+
+ggplot(weighted_means_df, aes(x = weekend, y = total_kcal)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.15) +
+  labs(
+    title = "Survey-Weighted Mean Calorie Intake",
+    x = "Recall Day",
+    y = "Mean total kcal"
+  )
+```
+
+
+## Survey Weighted Statistics
+
+**Weekday weighted mean:** 1,962 kcal
+
+**Weekend weighted mean:** 2,028 kcal
+
+**Difference:** about 66 kcal higher on weekends
+
+After applying NHANES survey weights, weekend recalls still had higher average reported calorie intake than weekday recalls. This matches the pattern from the unweighted analysis, but the weighted results better account for the NHANES survey design.
+
+## Survey Weighted Linear Regression
+
+`svyglm()` fits a regression model while accounting for the survey design.
+```{r}
+#| echo: True
+svy_model <- svyglm(
+  total_kcal ~ weekend + special_diet,
+  design = nhanes_design
+)
+summary(svy_model)
+```
+
+## Survey Weighted Linear Regression
+```{r}
+df_svy <- df_svy |>
+  mutate(
+    svy_resid = residuals(svy_model, type = "response")
+  )
+
+ggplot(df_svy, aes(sample = svy_resid)) +
+  stat_qq(alpha = 0.25) +
+  stat_qq_line() +
+  labs(
+    title = "Q-Q Plot of Survey-Weighted Model Residuals",
+    x = "Theoretical Quantiles",
+    y = "Sample Quantiles"
+  )
+```
+
+## Weighted Conclusion
+
+After accounting for NHANES survey weights, strata, and clusters, participants had higher mean energy intake on weekend days compared with weekdays.
+
+- Weekend recalls: **+68 kcal** on average, adjusted for special diet (**p = 0.048**).
+- Special diet: **−175 kcal** on average, adjusted for recall day (**p = 0.002**).
+
+**Layman:** Even after accounting for NHANES survey design and special diet status, people reported eating slightly more calories on weekends — about **68 extra calories per day** on average.
+

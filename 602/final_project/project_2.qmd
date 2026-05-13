@@ -1,0 +1,647 @@
+---
+title: "NYC Citywide Payroll Data Analysis"
+author: "Shawn Ganz"
+date: today
+format: 
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: true
+    theme: cosmo
+jupyter: python3
+---
+
+## Initialization
+
+```{python}
+#| echo: false
+#| include: false
+
+import os
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import requests
+from dotenv import load_dotenv
+from pathlib import Path
+from great_tables import GT
+
+
+load_dotenv()
+
+NYC_API = "https://data.cityofnewyork.us/api/v3/views/k397-673e/query.json"
+
+data_science_titles = [
+    "Data Analyst",
+    "City Research Scientist",
+    "Research Scientist",
+    "Statistician",
+    "IT Project Specialist"
+]
+
+core_exact_titles = [
+    "CITY RESEARCH SCIENTIST",
+    "IT PROJECT SPECIALIST",
+    "STATISTICIAN"
+]
+
+similar_titles = [
+    "CITY RESEARCH SCIENTIST",
+    "IT PROJECT SPECIALIST",
+    "STATISTICIAN",
+    "BUSINESS RESEARCH & DATA ANALYTICS SPECIALIST",
+    "BUSINESS DATA AND REPORTING ANALYST",
+    "CRIME ANALYST",
+    "CYBER SECURITY ANALYST",
+    "IT SECURITY SPECIALIST",
+    "SENIOR IT ARCHITECT",
+    "IT INFRASTRUCTURE ENGINEER",
+    "IT AUTOMATION AND MONITORING ENGINEER",
+    "COMPUTER PROGRAMMER ANALYST",
+    "COMPUTER SPECIALIST",
+    "COMPUTER ASSOCIATE",
+    "ADMINISTRATIVE STAFF ANALYST",
+    "ASSOCIATE STAFF ANALYST",
+    "STAFF ANALYST",
+    "CERTIFIED IT DEVELOPER",
+    "DATA ANALYST",
+    "SENIOR DATA ANALYST"
+]
+
+```
+
+```{python}
+def check_endpoint(base_api_url, app_token):
+    headers = {
+        'X-App-Token': app_token,
+        'Content-Type': 'application/json'
+    }
+    
+    # Test with small limit in URL
+    url = f"{base_api_url}?$limit=1"
+    
+    response = requests.post(url, headers=headers)
+    
+    if response.status_code == 200:
+        print("Endpoint is working")
+        return True
+    else:
+        print(f"Endpoint failed. Status: {response.status_code}")
+        print(f"Message: {response.text}")
+        return False
+
+
+def fetch_data(base_api_url, app_token):
+    all_data = []
+    offset = 0
+    limit = 200000
+    headers = {
+        'X-App-Token': app_token,
+        'Content-Type': 'application/json'
+    }
+    
+    while True:
+        url = f"{base_api_url}?$limit={limit}&$offset={offset}"
+        
+        response = requests.post(url, headers=headers)
+        response.raise_for_status()
+        
+        batch = pd.DataFrame(response.json())
+        all_data.append(batch)
+        
+        if len(batch) < limit:
+            break
+            
+        offset += limit
+    
+    return pd.concat(all_data, ignore_index=True)
+
+
+def load_or_fetch_data(base_api_url=None, csv_filename="nyc_payroll_data.csv"):
+    csv_path = Path(csv_filename)
+    
+    if csv_path.exists():
+        return pd.read_csv(csv_path, low_memory=False)
+    
+    app_token = os.getenv("app_token")
+    if not app_token:
+        raise ValueError("app_token is missing from .env")
+    
+    if base_api_url is None:
+        raise ValueError("base_api_url is required when fetching from API")
+    
+    df = fetch_data(base_api_url, app_token)
+    df.to_csv(csv_path, index=False)
+    return df
+
+def clean_money_column(series):
+    """Clean a money column (remove $, commas, convert to float)"""
+    return (series
+            .astype(str)
+            .str.replace('$', '', regex=False)
+            .str.replace(',', '', regex=False)
+            .str.strip()
+            .replace('', pd.NA)
+            .astype(float))
+
+```
+
+```{python}
+df_raw = load_or_fetch_data(
+    base_api_url=NYC_API, 
+    csv_filename="nyc_payroll_data.csv"
+)
+
+df_raw.info()
+```
+
+```{python}
+# Start simple
+df_new = (
+    df_raw
+    .reset_index(drop=True)
+    .assign(row_id=lambda x: x.index)
+)
+
+# Select columns and rename first (cleaner column names)
+df = df_new[[
+    'Agency Name', 
+    'Title Description', 
+    'First Name', 
+    'Last Name',
+    'Pay Basis',
+    'Base Salary', 
+    'Regular Gross Paid', 
+    'Total OT Paid', 
+    'Total Other Pay',
+    'Fiscal Year', 
+    'Leave Status as of June 30',
+    'Agency Start Date',
+    'Work Location Borough'
+]].copy()
+
+# Rename to snake_case
+df = df.rename(columns={
+    'Agency Name': 'agency_name',
+    'Title Description': 'title_description',
+    'First Name': 'first_name',
+    'Last Name': 'last_name',
+    'Pay Basis': 'pay_basis',
+    'Base Salary': 'base_salary',
+    'Regular Gross Paid': 'regular_gross_paid',
+    'Total OT Paid': 'total_ot_paid',
+    'Total Other Pay': 'total_other_pay',
+    'Fiscal Year': 'fiscal_year',
+    'Leave Status as of June 30': 'leave_status',
+    'Agency Start Date': 'agency_start_date',
+    'Work Location Borough': 'work_location_borough'
+})
+
+# Clean money columns
+money_cols = ['base_salary', 'regular_gross_paid', 'total_ot_paid', 'total_other_pay']
+
+for col in money_cols:
+    if col in df.columns:
+        df[col] = clean_money_column(df[col])
+
+# Now apply filters using the new column names
+df = (
+    df
+    .loc[df['leave_status'] == "ACTIVE"]
+    .loc[df['fiscal_year'] == 2025]
+    .loc[df['pay_basis'] == 'per Annum']        # only per Annum
+    .loc[df['base_salary'] >= 20000]      # remove junk/low placeholders
+    .loc[df['base_salary'] != 1]
+)
+
+df.info()
+```
+
+```{python}
+salary_sorted = df["base_salary"].sort_values().reset_index(drop=True)
+
+plt.figure(figsize=(10, 5))
+
+plt.scatter(salary_sorted.index, salary_sorted, alpha=0.3)
+
+plt.xlabel("Sorted Row Index")
+plt.ylabel("Base Salary")
+plt.title("Sorted Base Salary Scatterplot")
+
+plt.show()
+```
+
+```{python}
+plt.figure(figsize=(12, 7))
+
+# Seaborn histogram with density (normalized)
+sns.histplot(
+    data=df, 
+    x='base_salary', 
+    bins=80, 
+    kde=False,           # adds smooth density curve
+    stat='density',     # normalized
+    edgecolor='black',
+    alpha=0.8
+)
+
+plt.title('Distribution of Base Salary — Normalized with KDE', fontsize=14)
+plt.xlabel('Base Salary ($)', fontsize=12)
+plt.ylabel('Density', fontsize=12)
+plt.grid(True, alpha=0.3)
+
+# Stats box
+stats = df['base_salary'].describe()
+plt.text(0.95, 0.95, f"Count: {len(df):,}\nMean: ${stats['mean']:,.0f}\nMedian: ${stats['50%']:,.0f}", 
+         transform=plt.gca().transAxes, ha='right', va='top',
+         bbox=dict(boxstyle="round", facecolor="white", alpha=0.9))
+
+plt.tight_layout()
+plt.show()
+```
+
+Which agencies spend the most on employee compensation?
+
+```{python}
+# Group by agency and calculate summary statistics
+agency_total_base_salary = (
+    df.groupby("agency_name")
+      .agg(
+          total_base_salary=("base_salary", "sum"),
+          mean_base_salary=("base_salary", "mean"),
+          median_base_salary=("base_salary", "median"),
+          employee_count=("base_salary", "count")
+      )
+      .sort_values("total_base_salary", ascending=False)
+)
+
+# Get top 20 agencies by total base salary
+top_agencies_salary_table = agency_total_base_salary.head(10).reset_index()
+
+# === Nicely formatted pandas Styler table ===
+styled_table = (
+    top_agencies_salary_table
+    .style
+    .format({
+        "total_base_salary": "${:,.0f}",
+        "mean_base_salary": "${:,.0f}",
+        "median_base_salary": "${:,.0f}",
+        "employee_count": "{:,.0f}"
+    })
+    .set_caption("Top 10 NYC Agencies by Total Base Salary<br>"
+                 "<small>Fiscal Year 2025 • Active annual employees</small>")
+    .set_table_styles([
+        {'selector': 'caption', 
+         'props': [('text-align', 'center'), 
+                   ('font-size', '16px'), 
+                   ('font-weight', 'bold')]},
+        {'selector': 'th', 'props': [('text-align', 'left')]},
+        {'selector': 'td', 'props': [('text-align', 'right')]}
+    ])
+    .hide(axis="index")   # Hide default row numbers
+)
+
+styled_table
+```
+
+```{python}
+plot_data = top_agencies_salary_table.sort_values("total_base_salary")
+
+plt.figure(figsize=(10, 6))
+
+plt.barh(
+    plot_data["agency_name"],
+    plot_data["total_base_salary"]
+)
+
+plt.title("Top 10 NYC Agencies by Total Base Salary")
+plt.xlabel("Total Base Salary ($)")
+plt.ylabel("Agency")
+
+plt.gca().xaxis.set_major_formatter(
+    plt.FuncFormatter(lambda x, _: f"${x/1e9:.1f}B")
+)
+
+plt.tight_layout()
+plt.show()
+```
+Which agencies have the highest average salaries? -
+
+```{python}
+
+# Group by agency and calculate the required metrics
+agency_salary_summary = (
+    df.groupby("agency_name")
+      .agg(
+          mean_base_salary=("base_salary", "mean"),
+          median_base_salary=("base_salary", "median"),
+          total_base_salary=("base_salary", "sum"),
+          employee_count=("base_salary", "count")
+      )
+)
+
+# Filter to agencies with at least 50 employees
+agency_salary_summary_50plus = agency_salary_summary[
+    agency_salary_summary["employee_count"] >= 50
+].copy()
+
+# Get top 20 by average base salary
+top_agencies_avg_salary = (
+    agency_salary_summary_50plus
+    .sort_values("mean_base_salary", ascending=False)
+    .head(10)
+    .reset_index()
+)
+
+# === Pretty display using pandas styling ===
+styled_table = (
+    top_agencies_avg_salary
+    .style
+    .format({
+        "mean_base_salary": "${:,.0f}",
+        "median_base_salary": "${:,.0f}",
+        "total_base_salary": "${:,.0f}",
+        "employee_count": "{:,.0f}"
+    })
+    .set_caption("Top 10 NYC Agencies by Average Base Salary<br>"
+                 "<small>Active annual employees, fiscal year 2025 • agencies with ≥ 50 employees</small>")
+    .set_table_styles([
+        {'selector': 'caption', 'props': [('text-align', 'center'), 
+                                          ('font-size', '16px'), 
+                                          ('font-weight', 'bold')]},
+        {'selector': 'th', 'props': [('text-align', 'left')]},
+        {'selector': 'td', 'props': [('text-align', 'right')]}
+    ])
+    .hide(axis="index")  # hide the default numeric index
+)
+
+styled_table
+```
+```{python}
+plot_data = top_agencies_avg_salary.sort_values("mean_base_salary", ascending=False)
+
+plt.figure(figsize=(10, 6))
+
+ax = sns.barplot(
+    data=plot_data,
+    x="mean_base_salary",
+    y="agency_name"
+)
+
+plt.title("Top 10 NYC Agencies by Average Base Salary")
+plt.xlabel("Average Base Salary ($)")
+plt.ylabel("Agency")
+
+# Truncate axis to show differences more clearly
+plt.xlim(100000, 145000)
+
+ax.xaxis.set_major_formatter(
+    plt.FuncFormatter(lambda x, _: f"${x/1000:.0f}K")
+)
+
+# Add labels to bars
+for container in ax.containers:
+    ax.bar_label(
+        container,
+        labels=[f"${v/1000:.0f}K" for v in plot_data["mean_base_salary"]],
+        padding=4
+    )
+
+plt.tight_layout()
+plt.show()
+```
+Among selected data science-related civil service titles, which agencies offer the highest compensation?
+
+```{python}
+df_core = df[df['title_description'].isin(core_exact_titles)].copy()
+df_similar = df[df['title_description'].isin(similar_titles)].copy()
+```
+
+```{python}
+# Agency-level salary summaries for core and similar title groups
+core_agency_salary = (
+    df_core
+    .groupby("agency_name")
+    .agg(
+        mean_base_salary=("base_salary", "mean"),
+        median_base_salary=("base_salary", "median"),
+        employee_count=("base_salary", "count"),
+        total_base_salary=("base_salary", "sum")
+    )
+    .loc[lambda x: x["employee_count"] >= 10]
+    .sort_values("mean_base_salary", ascending=False)
+)
+
+similar_agency_salary = (
+    df_similar
+    .groupby("agency_name")
+    .agg(
+        mean_base_salary=("base_salary", "mean"),
+        median_base_salary=("base_salary", "median"),
+        employee_count=("base_salary", "count"),
+        total_base_salary=("base_salary", "sum")
+    )
+    .loc[lambda x: x["employee_count"] >= 10]
+    .sort_values("mean_base_salary", ascending=False)
+)
+```
+
+```{python}
+top_core_agency_salary = core_agency_salary.head(10).reset_index()
+
+top_core_agency_salary.style.format({
+    "mean_base_salary": "${:,.0f}",
+    "median_base_salary": "${:,.0f}",
+    "employee_count": "{:,.0f}",
+    "total_base_salary": "${:,.0f}"
+}).set_caption(
+    "Top Agencies by Average Base Salary: Core Data Science-Related Titles"
+)
+```
+```{python}
+plot_data = top_core_agency_salary.sort_values("mean_base_salary", ascending=False)
+
+plt.figure(figsize=(10, 6))
+
+ax = sns.barplot(
+    data=plot_data,
+    x="mean_base_salary",
+    y="agency_name"
+)
+
+plt.title("Top Agencies by Average Base Salary: Core Data Science-Related Titles")
+plt.xlabel("Average Base Salary ($)")
+plt.ylabel("")
+
+plt.xlim(100000, 160000)
+
+ax.xaxis.set_major_formatter(
+    plt.FuncFormatter(lambda x, _: f"${x/1000:.0f}K")
+)
+
+for container in ax.containers:
+    ax.bar_label(
+        container,
+        labels=[f"${v/1000:.0f}K" for v in plot_data["mean_base_salary"]],
+        padding=4
+    )
+
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+top_similar_agency_salary = similar_agency_salary.head(10).reset_index()
+
+top_similar_agency_salary.style.format({
+    "mean_base_salary": "${:,.0f}",
+    "median_base_salary": "${:,.0f}",
+    "employee_count": "{:,.0f}",
+    "total_base_salary": "${:,.0f}"
+}).set_caption(
+    "Top Agencies by Average Base Salary: Similar Data/Analytics/IT-Related Titles"
+)
+```
+
+```{python}
+plot_data = top_similar_agency_salary.sort_values("mean_base_salary", ascending=False)
+
+plt.figure(figsize=(10, 6))
+
+ax = sns.barplot(
+    data=plot_data,
+    x="mean_base_salary",
+    y="agency_name"
+)
+
+plt.title("Top Agencies by Average Base Salary: Similar Data/Analytics/IT-Related Titles")
+plt.xlabel("Average Base Salary ($)")
+plt.ylabel("")
+
+plt.xlim(100000, 150000)
+
+ax.xaxis.set_major_formatter(
+    plt.FuncFormatter(lambda x, _: f"${x/1000:.0f}K")
+)
+
+for container in ax.containers:
+    ax.bar_label(
+        container,
+        labels=[f"${v/1000:.0f}K" for v in plot_data["mean_base_salary"]],
+        padding=4
+    )
+
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+top_core_jobs = (
+    df_core
+    .groupby("title_description")
+    .agg(
+        mean_base_salary=("base_salary", "mean"),
+        median_base_salary=("base_salary", "median"),
+        employee_count=("base_salary", "count")
+    )
+    .sort_values("mean_base_salary", ascending=False)
+    .head(5)
+    .reset_index()
+)
+
+top_core_jobs.style.format({
+    "mean_base_salary": "${:,.0f}",
+    "median_base_salary": "${:,.0f}",
+    "employee_count": "{:,.0f}"
+}).set_caption(
+    "Top Core Data Science-Related Titles by Mean Base Salary"
+)
+```
+```{python}
+plot_data = top_core_jobs.sort_values("mean_base_salary", ascending=False)
+
+plt.figure(figsize=(10, 4))
+
+ax = sns.barplot(
+    data=plot_data,
+    x="mean_base_salary",
+    y="title_description"
+)
+
+plt.title("Core Data Science-Related Titles by Mean Base Salary")
+plt.xlabel("Mean Base Salary ($)")
+plt.ylabel("")
+
+plt.xlim(0, 140000)
+
+ax.xaxis.set_major_formatter(
+    plt.FuncFormatter(lambda x, _: f"${x/1000:.0f}K")
+)
+
+for container in ax.containers:
+    ax.bar_label(
+        container,
+        labels=[f"${v/1000:.0f}K" for v in plot_data["mean_base_salary"]],
+        padding=4
+    )
+
+plt.tight_layout()
+plt.show()
+```
+
+
+```{python}
+top_similar_jobs = (
+    df_similar
+    .groupby("title_description")
+    .agg(
+        mean_base_salary=("base_salary", "mean"),
+        median_base_salary=("base_salary", "median"),
+        employee_count=("base_salary", "count")
+    )
+    .sort_values("mean_base_salary", ascending=False)
+    .head(10)
+    .reset_index()
+)
+
+top_similar_jobs.style.format({
+    "mean_base_salary": "${:,.0f}",
+    "median_base_salary": "${:,.0f}",
+    "employee_count": "{:,.0f}"
+}).set_caption(
+    "Top 10 Similar Data/Analytics/IT-Related Titles by Mean Base Salary"
+)
+```
+
+```{python}
+plot_data = top_similar_jobs.sort_values("mean_base_salary", ascending=False)
+
+plt.figure(figsize=(10, 5))
+
+ax = sns.barplot(
+    data=plot_data,
+    x="mean_base_salary",
+    y="title_description"
+)
+
+plt.title("Top 10 Similar Data/Analytics/IT-Related Titles by Mean Base Salary")
+plt.xlabel("Mean Base Salary ($)")
+plt.ylabel("")
+
+plt.xlim(50000, 200000)
+
+ax.xaxis.set_major_formatter(
+    plt.FuncFormatter(lambda x, _: f"${x/1000:.0f}K")
+)
+
+for container in ax.containers:
+    ax.bar_label(
+        container,
+        labels=[f"${v/1000:.0f}K" for v in plot_data["mean_base_salary"]],
+        padding=4
+    )
+
+plt.tight_layout()
+plt.show()
+```
