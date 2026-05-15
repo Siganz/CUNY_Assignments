@@ -2,11 +2,42 @@
 "$schema" = "https://cdn.posit.co/publisher/schemas/posit-publishing-record-schema-v3.json"
 server_type = "connect_cloud"
 server_url = "https://connect.posit.cloud"
-created_at = "2026-05-12T01:54:39.811Z"
-type = "unknown"
-configuration_name = "602_final_project-AFH0"
 client_version = "2.4.0"
+created_at = "2026-05-12T01:54:39.811Z"
+type = "quarto-static"
+configuration_name = "602_final_project-AFH0"
+id = "019e2be3-ca40-7296-2396-57c8dbf22e36"
+dashboard_url = "https://connect.posit.cloud/shawnganz/content/019e2be3-ca40-7296-2396-57c8dbf22e36"
+direct_url = "https://019e2be3-ca40-7296-2396-57c8dbf22e36.share.connect.posit.cloud"
+logs_url = "https://connect.posit.cloud/shawnganz/content/019e2be3-ca40-7296-2396-57c8dbf22e36/history"
+deployed_at = "2026-05-15T15:04:13.120Z"
+bundle_id = "019e2c2a-372d-3414-41b6-e2b4e5d24a4d"
+files = [
+    ".posit/publish/602_final_project-AFH0.toml",
+    ".posit/publish/deployments/deployment-TCQ0.toml",
+    "nyc_payroll_analysis_data.parquet",
+    "project.ipynb",
+    "project.qmd",
+    "requirements.txt",
+]
 
 [connect_cloud]
 account_name = "shawnganz"
+
+[configuration]
+"$schema" = "https://cdn.posit.co/publisher/schemas/posit-publishing-schema-v3.json"
+type = "quarto-static"
+entrypoint = "project.qmd"
+title = "602_final_project"
+files = [
+    "/project.qmd",
+    "/.posit/publish/602_final_project-AFH0.toml",
+    "/.posit/publish/deployments/deployment-TCQ0.toml",
+    "/project.ipynb",
+    "/nyc_payroll_data.csv.gz",
+    "/requirements.txt",
+    "/nyc_payroll_analysis_data.parquet",
+]
+validate = true
+product_type = "connect_cloud"
 

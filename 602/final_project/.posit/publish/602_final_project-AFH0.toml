@@ -9,6 +9,10 @@ files = [
     "/project.qmd",
     "/.posit/publish/602_final_project-AFH0.toml",
     "/.posit/publish/deployments/deployment-TCQ0.toml",
+    "/project.ipynb",
+    "/nyc_payroll_data.csv.gz",
+    "/requirements.txt",
+    "/nyc_payroll_analysis_data.parquet",
 ]
 validate = true
 product_type = "connect_cloud"
