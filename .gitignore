@@ -6,4 +6,28 @@
 .Renviron
 607/project_04/data
 607/final_project/DOHMH_New_York_City_Restaurant_Inspection_Results_20260506.csv
+612/Final_project/data
+612/Final_project/archive
 .venv
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.ipynb_checkpoints/
+
+# Spark runtime / large regenerated artifacts
+spark_tmp/
+**/spark_tmp/
+logs/
+**/logs/
+
+# OS / editor junk
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+.vscode/
+.idea/
+.archive/
+.data_old/
