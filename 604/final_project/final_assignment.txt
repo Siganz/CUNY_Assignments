@@ -1,0 +1,48 @@
+Data-driven_optimization_for_last-mile_delivery.pdf
+
+1-s2.0-S2212827121008994-main.pdf
+
+Develop a model that illustrates the process where a product is dispatched from a warehouse and sent to the customer, after purchasing the product through an e-commerce website.
+
+Refer to the following articles to have a better understanding of the processes:
+
+A worker in a blue lab coat and safety goggles smiles while operating orange Amazon warehouse equipment surrounded by stacked pallets.
+Amazon fulfillment center simulations
+Meet Swati Singhal, a software engineer working on robotic operations in fulfillment centers, and one of the roboticists we're spotlighting during National Robotics Week.
+US About Amazon
+https://www.crbgroup.com/insights/consulting/warehouse-optimization
+
+An Amazon Prime Air cargo plane with blue and white livery sits inside a large aircraft hangar, with people visible nearby.
+How the Amazon Supply Chain Works - Process, Strategy, & More
+Learn all about the Amazon supply chain: process, strategy, and how sellers and eCommerce companies can use it to their advantage.
+Brian Connolly
+Jungle Scout
+For those who can't use Simio due to their type of computer and OS, develop the model in Python or R. Here are some references to help you:
+
+https://realpython.com/simpy-simulating-with-python/ 
+
+Diagram showing e-commerce last-mile delivery flow: truck to warehouse to courier on scooter delivering to three locations marked with question marks.
+Optimize E-Commerce Last-Mile Delivery with Python
+Organize your routes to deliver parcels with a minimum number of drivers using optimization models with python
+Samir Saci
+Medium
+Also check the attached documents.
+
+If you want to check other programs, compatible with your OS, here are some alternatives to explore
+
+https://www.getapp.com/it-management-software/simulation/?oses_slug%5B%5D=mac&pricingcategories_slug%5B%5D=free
+
+Due date: July 19, 2026
+
+Final grades are due on July 21, 2026
+
+Ref. https://sps.cuny.edu/academics/academic-calendar/2026-2027-calendar/summer/summer-2026-session-1
+
+---
+
+Graded on:
+    - Concept model
+    - Use of Simio (Simpy) resources
+    - Process Logic
+    - Process Explanation
+    - Model Performance
